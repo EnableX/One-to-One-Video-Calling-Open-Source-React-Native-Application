@@ -36,10 +36,10 @@ allprojects {
             // Android JSC is installed from npm
             url("$rootDir/../node_modules/jsc-android/dist")
         }
-    flatDir {
-            dirs 'src/main/libs'
-            dirs project(':enx-rtc-react-native').file('libs')
-        }
+    // flatDir {
+    //         dirs 'src/main/libs'
+    //         dirs project(':enx-rtc-react-native').file('libs')
+    //     }
         google()
         jcenter()
 		  maven {

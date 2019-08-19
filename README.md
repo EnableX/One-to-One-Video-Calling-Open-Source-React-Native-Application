@@ -27,14 +27,15 @@ This App creates a virtual Room on the fly  hosted on the Enablex platform using
 
 * Clone or download this Repository [https://github.com/EnableX/Sample-Web-App-1to1-RTC.git] & follow the steps further 
 * You need to use App ID and App Key to run this Service. 
-* Your Android Client End Point needs to connect to this Service to create Virtual Room.
+* Your React-Native Client End Point needs to connect to this Service to create Virtual Room.
 * Follow README file of this Repository to setup the Service.
 
 
 #### 1.1.4 Configure React Native Client 
 
 * Open the App
-* Go to WebConstants and change the following:
+* Go to EnxJoinScreen.js -> Methos Name - getRoomIDWebCall: and getRoomTokenWebCall:
+Change as below 
 ``` 
  String userName = "USERNAME"  /* HTTP Basic Auth Username of App Server */
  String password = "PASSWORD"  /* HTTP Basic Auth Password of App Server */
@@ -42,7 +43,7 @@ This App creates a virtual Room on the fly  hosted on the Enablex platform using
  ```
  
  Note: The distributable comes with demo username and password for the Service. 
-
+ 
 ### 1.2 Test
 
 #### 1.2.1 Open the App
@@ -71,9 +72,15 @@ https://developer.enablex.io/api/server-api/
 React Native App to use React Native Toolkit to communicate with EnableX Servers to initiate and manage Real Time Communications.  
 
 * Documentation: https://developer.enablex.io/api/client-api/react-native/
-* Download: https://developer.enablex.io/wp-content/uploads/EnxRtcAndroid-release_0.9.2.aar
 
+### 3.1 Platform oriented Dependency Installation
 
+#### 3.1.1 iOS dependency 
+   * Step 1: In your terminal, change into the `ios` directory of your React Native project.
+   * Step 2: Now run, `pod install`
+   * Step 3: Change root directory of your Project 
+   * Step 4: Now run, `react-native link enx-rtc-react-native`.
+    
 ## 4 Application Walk-through
 
 ### 4.1 Create Token

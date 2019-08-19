@@ -200,10 +200,10 @@ export default class App extends PureComponent {
   async getRoomIDWebCall() {
     console.log("getRoomIDWebCall");
     await axios
-      .post("https://vcm-mt.vcloudx.com/createRoom/", {},{
+      .post("FQDN/createRoom/", {},{
         auth:{
-           username: 'demo',
-           password: 'enablex'
+           username: 'USERNAME',
+           password: 'PASSWORD'
         }
       })
       .then(function(response) {
@@ -220,7 +220,7 @@ export default class App extends PureComponent {
     console.log("getRoomTokenWebCall");
 
     await axios
-      .post("https://vcm-mt.vcloudx.com/createToken/", {
+      .post("FQDN/createToken/", {
         name: this.state.user_name,
         role: "participant",
         user_ref: "2236",
