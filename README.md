@@ -80,7 +80,26 @@ React Native App to use React Native Toolkit to communicate with EnableX Servers
    * Step 2: Now run, `pod install`
    * Step 3: Change root directory of your Project 
    * Step 4: Now run, `react-native link enx-rtc-react-native`.
-    
+   * Step 5: Run pod install in iOS project folder
+    * Step 5: Disable Bitcode in Build Settings for pod 'EnxRTCiOS' and 'enx-rtc-react-native'
+    NOTE: Make sure you are using EnxRTCiOS version 1.5.6 else pod update.
+	
+#### 3.1.2 Android dependency 
+After installing nodemodules, change the manifest file of react-native-navigation in android Project, because of 3rd party dependency issue as follows:
+``` 
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+          package="com.reactnativenavigation">
+    <uses-sdk tools:overrideLibrary="com.shazam.android.widget.text.reflow"/>
+    <application>
+        <activity
+            android:name="com.facebook.react.devsupport.DevSettingsActivity"
+            android:exported="false"/>
+    </application>
+</manifest>
+
+  ```
+
 ## 4 Application Walk-through
 
 ### 4.1 Create Token
