@@ -197,15 +197,15 @@ export default class App extends PureComponent {
       }
   };
 
-  async getRoomIDWebCall() {
+    async getRoomIDWebCall() {
     console.log("getRoomIDWebCall");
+    var hedare = (kTry) ? { "x-app-id" : kAppId , "x-app-key" : kAppkey} : {};
+    const options = {
+      headers: hedare
+    };
+    
     await axios
-      .post("FQDN/createRoom/", {},{
-        auth:{
-           username: 'USERNAME',
-           password: 'PASSWORD'
-        }
-      })
+      .post(kBaseURL+"createRoom/", {} , options)
       .then(function(response) {
         this.infos = response.data;
         console.log("axiosResponseinfo", this.infos);
@@ -218,14 +218,17 @@ export default class App extends PureComponent {
 
   async getRoomTokenWebCall() {
     console.log("getRoomTokenWebCall");
-
+    var hedare = (kTry) ? { "x-app-id" : kAppId , "x-app-key" : kAppkey} : {};
+    const options = {
+      headers: hedare
+    };
     await axios
-      .post("FQDN/createToken/", {
+      .post(kBaseURL+"createToken/", {
         name: this.state.user_name,
         role: "participant",
         user_ref: "2236",
         roomId: infos.room.room_id
-      })
+      },options)
       .then(function(response) {
         this.res_token = response.data;
         console.log("axiosResponsetoken", this.res_token);
@@ -302,3 +305,10 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   }
 });
+   /*Your webservice host URL, Keet the defined host when kTry = true */
+  const kBaseURL = "https://demo.enablex.io/";
+  /* To try the app with Enablex hosted service you need to set the kTry = true */
+  const kTry = true;
+  /*Use enablec portal to create your app and get these following credentials*/
+  const  kAppId = "App_ID";
+  const  kAppkey = "App_Key";
