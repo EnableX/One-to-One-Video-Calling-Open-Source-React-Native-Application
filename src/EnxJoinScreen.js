@@ -198,12 +198,11 @@ export default class App extends PureComponent {
   };
 
     async getRoomIDWebCall() {
-    console.log("getRoomIDWebCall");
-    var hedare = (kTry) ? { "x-app-id" : kAppId , "x-app-key" : kAppkey} : {};
+    var header = (kTry) ? { "x-app-id" : kAppId , "x-app-key" : kAppkey} : {};
     const options = {
-      headers: hedare
-    };
-    
+      headers: header
+    };  
+
     await axios
       .post(kBaseURL+"createRoom/", {} , options)
       .then(function(response) {
@@ -217,10 +216,9 @@ export default class App extends PureComponent {
   }
 
   async getRoomTokenWebCall() {
-    console.log("getRoomTokenWebCall");
-    var hedare = (kTry) ? { "x-app-id" : kAppId , "x-app-key" : kAppkey} : {};
+    var header = (kTry) ? { "x-app-id" : kAppId , "x-app-key" : kAppkey} : {};
     const options = {
-      headers: hedare
+      headers: header
     };
     await axios
       .post(kBaseURL+"createToken/", {
@@ -239,7 +237,6 @@ export default class App extends PureComponent {
   }
 
   async navigateToVideo() {
-    console.log("navigateToVideo");
     await this.getRoomTokenWebCall();
     try {
       if (res_token.result == 0) {
@@ -310,5 +307,5 @@ const styles = StyleSheet.create({
   /* To try the app with Enablex hosted service you need to set the kTry = true */
   const kTry = true;
   /*Use enablec portal to create your app and get these following credentials*/
-  const  kAppId = "App_ID";
-  const  kAppkey = "App_Key";
+  const  kAppId = "5ef5b31690ef80b4300b0bd2";
+  const  kAppkey = "uJehyWaAu4uvyTupeJyJuHu6ygyYaGu2yzuq";

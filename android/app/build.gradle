@@ -198,11 +198,8 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation 'androidx.appcompat:appcompat:1.0.2'// From node_modules
     implementation 'com.google.android.material:material:1.0.0-alpha08'
-//    implementation group: 'com.google.android.material', name: 'material', version: '1.1.0-alpha08'
-//    implementation 'com.google.android.material:material:1.0.0-alpha08'
     implementation project(":enx-rtc-react-native")
     implementation project(':react-native-navigation')
-    implementation project(':react-native-vector-icons')
     if (enableHermes) {
       def hermesPath = "../../node_modules/hermesvm/android/";
       debugImplementation files(hermesPath + "hermes-debug.aar")

@@ -1,12 +1,12 @@
 PODS:
   - boost-for-react-native (1.63.0)
   - DoubleConversion (1.1.5)
-  - enx-rtc-react-native (1.5.3.1):
-    - EnxRTCiOS (= 1.5.3)
+  - enx-rtc-react-native (1.5.1):
+    - EnxRTCiOS (= 1.6.0)
     - React
     - Socket.IO-Client-Swift (~> 15.0.0)
-  - EnxRTCiOS (1.5.3):
-    - GoogleWebRTC (= 1.1.29229)
+  - EnxRTCiOS (1.6.0):
+    - GoogleWebRTC (= 1.1.29400)
   - FBLazyVector (0.62.2)
   - FBReactNativeSpec (0.62.2):
     - Folly (= 2018.10.22.00)
@@ -25,7 +25,7 @@ PODS:
     - DoubleConversion
     - glog
   - glog (0.3.4)
-  - GoogleWebRTC (1.1.29229)
+  - GoogleWebRTC (1.1.29400)
   - RCTRequired (0.62.2)
   - RCTTypeSafety (0.62.2):
     - FBLazyVector (= 0.62.2)
@@ -345,13 +345,13 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   DoubleConversion: e22e0762848812a87afd67ffda3998d9ef29170c
-  enx-rtc-react-native: 048a79cf717f71696c9f13a17e33bac8c2f057a3
-  EnxRTCiOS: f156a3106628eec03c33ab453ee2b02efd660a14
+  enx-rtc-react-native: 9445112e22d05d1a5e884a3220419ecb08e03451
+  EnxRTCiOS: 3004e4cd586374ba6b6d6355288de54b75f7d2f6
   FBLazyVector: 4aab18c93cd9546e4bfed752b4084585eca8b245
   FBReactNativeSpec: 5465d51ccfeecb7faa12f9ae0024f2044ce4044e
   Folly: 30e7936e1c45c08d884aa59369ed951a8e68cf51
   glog: 1de0bb937dccdc981596d3b5825ebfb765017ded
-  GoogleWebRTC: ffbf2dca3bdef0fbeebcff497e0a659bd69761c8
+  GoogleWebRTC: cfb83bc346435a17fe06bb05f04ad826b858a7fb
   RCTRequired: cec6a34b3ac8a9915c37e7e4ad3aa74726ce4035
   RCTTypeSafety: 93006131180074cffa227a1075802c89a49dd4ce
   React: 29a8b1a02bd764fb7644ef04019270849b9a7ac3
