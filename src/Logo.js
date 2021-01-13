@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from "react";
 import { StyleSheet, View, Text, Image } from "react-native";
 
-import logoImg from "./image_asset/logofront.png";
+import { logoImg } from "./image_asset/logofront.png";
 
 export default class Logo extends Component {
   render() {
@@ -21,12 +21,12 @@ const styles = StyleSheet.create({
   image: {
     height: 50,
     width: 220,
-    marginTop: 80
+    marginTop: 100
   },
   text: {
     color: "black",
     alignSelf: "center",
     fontSize: 28,
-    marginTop: 50
+    marginTop: 75
   }
 });

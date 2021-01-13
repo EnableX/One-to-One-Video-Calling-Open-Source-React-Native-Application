@@ -13,8 +13,9 @@ import {
   ScrollView
 } from "react-native";
 import PropTypes from "prop-types";
-import { registerScreens } from "./screens";
-import { Navigation } from "react-native-navigation";
+
+//import { registerScreens } from "./screens";
+// import { Navigation } from "react-native-navigation";
 import axios from "react-native-axios";
 import Logo from "./Logo";
 import { each } from "underscore";
@@ -55,7 +56,6 @@ export default class App extends PureComponent {
       room_id:"",
       permissionsError: false
     };
-    Navigation.events().bindComponent(this);
     this._onJoin_Room = this._onJoin_Room.bind(this);
     this._onCreate_Room = this._onCreate_Room.bind(this);
     this.getRoomIDWebCall = this.getRoomIDWebCall.bind(this);
@@ -229,7 +229,9 @@ export default class App extends PureComponent {
       },options)
       .then(function(response) {
         this.res_token = response.data;
+        
         console.log("axiosResponsetoken", this.res_token);
+       
       })
       .catch(function(error) {
         console.log("axiosCreateTokenCatch", error);
@@ -237,19 +239,25 @@ export default class App extends PureComponent {
   }
 
   async navigateToVideo() {
+   // const { navigate } = this.props.navigation;
     await this.getRoomTokenWebCall();
     try {
       if (res_token.result == 0) {
-        Navigation.push(this.props.componentId, {
-          component: {
-            name: "EnxConferenceScreen",
-            passProps: {
-              token: res_token.token,
-              username: this.state.user_name,
-              permissionsError: this.state.permissionsError
-            }
-          }
-        });
+        this.props.navigation.navigate('EnxConferenceScreen', {
+          username: this.state.user_name,
+          token: res_token.token
+         
+         });
+        // Navigation.push(this.props.componentId, {
+        //   component: {
+        //     name: "EnxConferenceScreen",
+        //     passProps: {
+        //       token: res_token.token,
+        //       username: this.state.user_name,
+        //       permissionsError: this.state.permissionsError
+        //     }
+        //   }
+        // });
       } else {
         console.log(res_token.error);
       }
@@ -307,5 +315,6 @@ const styles = StyleSheet.create({
   /* To try the app with Enablex hosted service you need to set the kTry = true */
   const kTry = true;
   /*Use enablec portal to create your app and get these following credentials*/
-  const  kAppId = "AppId";
-  const  kAppkey = "AppKey";
+  const  kAppId = "5ef5b31690ef80b4300b0bd2";
+  const  kAppkey = "uJehyWaAu4uvyTupeJyJuHu6ygyYaGu2yzuq";
+

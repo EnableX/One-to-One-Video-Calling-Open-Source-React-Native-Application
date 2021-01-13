@@ -1,32 +1,37 @@
 import React, { PureComponent } from "react";
 import {
+  Platform,
   StyleSheet,
   Text,
   Alert,
   TouchableHighlight,
+  TextInput,
+  Button,
   View,
   Dimensions,
   Image,
-  FlatList,
-  Modal,
+  PermissionsAndroid
 } from "react-native";
-import { registerScreens } from "./screens";
+// import { registerScreens } from "./screens";
 import PropTypes from "prop-types";
+import { EnxRoom, Enx, EnxStream, EnxPlayerView, EnxToolBarView } from "enx-rtc-react-native";
+// import { Navigation } from "react-native-navigation";
+import axios from "react-native-axios";
+// import Menu, {
+//   MenuItem,
+//   MenuDivider,
+//   Position
+// } from "react-native-enhanced-popup-menu";
+import Toast, { DURATION } from "react-native-easy-toast";
+import { Navigation,Route } from '@react-navigation/native';
 
-import {
-  EnxRoom,
-  EnxRtc,
-  Enx,
-  EnxStream,
-  EnxPlayerView,
-} from "enx-rtc-react-native";
-import { Navigation } from "react-native-navigation";
-
-type Props = {};
+type props = {};
 export default class EnxConferenceScreen extends PureComponent {
+  token:string;
+  
   static propTypes = {
     text: PropTypes.string,
-    componentId: PropTypes.string,
+    // componentId: PropTypes.string
   };
 
   static options(passProps) {
@@ -36,50 +41,90 @@ export default class EnxConferenceScreen extends PureComponent {
         animate: true,
         rightButtonColor: "white",
         backButton: {
-          visible: false,
+          visible: false
         },
         title: {
           text: "EnxConferenceScreen",
           fontSize: 20,
-          color: "white",
+          color: "white"
         },
         background: {
-          color: "#6f5989",
+          color: "#6f5989"
         },
+        rightButtons: [
+          {
+            id: "sendLogs",
+            icon: require("./image_asset/menuList.png"),
+            enabled: true,
+            text: "Send Logs",
+            color: "white",
+            showAsAction: "never",
+            systemItem: "action"
+          },
+          {
+            id: "startRecord",
+            icon: require("./image_asset/raise_hand.png"),
+            enabled: true,
+            text: "Start Recording",
+            color: "white",
+            showAsAction: "never",
+            systemItem: "done"
+          }
+        ]
       },
       statusBar: {
         backgroundColor: "#534367",
         visible: true,
-        style: "light",
-      },
+        style: "light"
+      }
     };
   }
 
-  async componentWillMount() {
+  async UNSAFE_componentWillMount() {
+    console.log('Providerrrrrr', EnxToolBarView);
     console.log("componentWillMount");
-    console.log("token", this.props.token);
-    console.log("username", this.props.username);
-    console.log("permissionsError", this.props.permissionsError);
-    console.log("role", this.props.role);
+   // console.log("token23", token);
+  //  console.log("username", this.props.username);
+   // console.log("permissionsError", this.props.permissionsError);
     Enx.initRoom();
   }
 
   constructor(props) {
+    
     super(props);
+    // const { token, username } = this.navigation;
+    // console.log("token321",token);
+    // console.log("username12",username);
+   
+    this.textRef = React.createRef();
+    // this.menuRef = null;
+    this.sharePlayer = null;
+    this.canvasPlayer = null;
     this.state = {
+
+   //   token : this.props.route && this.props.route.params && this.props.route.params.token,
       selectedDevice: "",
       deviceList: [],
+      base64Icon: "",
       activeTalkerStreams: [],
-      isDeviceModal: false,
+      recordingCheck: false,
+      screenShareCheck: false,
+      toolBarCheck: false,
       audioMuteUnmuteCheck: true,
       audioMuteUnmuteImage: require("./image_asset/unmute.png"),
       videoMuteUnmuteCheck: true,
       videoMuteUnmuteImage: require("./image_asset/startvideo.png"),
+      canvasCheck: false,
+      annotationCheck: false,
       localStreamId: "0",
+      screenShareId: null,
+      canvasStreamId: null,
+      activeStreamId: null,
+      annotationStreamId: null,
       localStreamInfo: {
         audio: true,
         video: true,
-        data: true,
+        data: false,
         maxVideoBW: "400",
         minVideoBW: "300",
         audioMuted: false,
@@ -89,140 +134,548 @@ export default class EnxConferenceScreen extends PureComponent {
         minHeight: "480",
         maxWidth: "1280",
         maxHeight: "720",
+        audio_only: false
       },
+      videoQual:{
+         streamType: "talker",
+         videoQuality: "SD"
+      },
+      enxRoomInfo: {
+        allow_reconnect: true,
+        number_of_attempts: "3",
+        timeout_interval: "15"
+      },
+      chat: {
+        message: "Test chat",
+        from: "React-Native",
+        timestamp: Date.now()
+      },
+      
     };
+    this.requestPermission = this.requestPermission.bind(this);
     this.roomEventHandlers = {
-      roomConnected: (event) => {
+      roomConnected: event => {
         console.log("roomConnected", event);
-        Enx.getLocalStreamId((status) => {
+        Enx.getLocalStreamId(status => {
           this.setState({
-            localStreamId: status,
+            localStreamId: status
           });
           this.state.localStreamId = status;
           console.log("localStreamId", this.state.localStreamId);
         });
         Enx.publish();
       },
-      notifyDeviceUpdate: (event) => {
-        console.log("notifyDeviceUpdate", event);
-      },
-      roomError: (event) => {
+      roomError: event => {
         console.log("roomError", event);
+        // Navigation.pop(this.props.componentId);
       },
-      streamPublished: (event) => {
+      availableFiles:event=>{
+        console.log("availableFiles", event);
+      },
+      streamPublished: event => {
         console.log("streamPublished", event);
       },
-      eventError: (event) => {
+      eventError: event => {
+        this.refs.toast.show(event.msg);
         console.log("eventErrorrr", event);
         if (this.props.permissionsError) {
           alert("Kindly grant camera and microphone permission to continue.");
         }
       },
-      streamAdded: (event) => {
+      streamAdded: event => {
         console.log("streamAdded", event);
-        Enx.subscribe(event.streamId, (error) => {
+        Enx.subscribe(event.streamId, error => {
           console.log("streamAdded", error);
         });
       },
-      activeTalkerList: (event) => {
+      notifyDeviceUpdate: event => {
+        console.log("NotifyDeviceUpdate", event);
+      },
+      activeTalkerList: event => {
         console.log("activeTalkerList: ", event);
+         
+        
         var tempArray = [];
+        // this.state.activeTalkerStreams = []
         tempArray = event;
         console.log("activeTalkerListtempArray: ", tempArray);
         if (tempArray.length == 0) {
           this.setState({
-            activeTalkerStreams: tempArray,
+            activeTalkerStreams: tempArray
           });
         }
         if (tempArray.length > 0) {
           this.setState({
-            activeTalkerStreams: tempArray,
+            activeTalkerStreams: tempArray
           });
         }
       },
-      streamSubscribed: (event) => {
+      streamSubscribed: event => {
         console.log("streamSubscribed", event);
       },
-      roomDisconnected: (event) => {
+
+      roomDisconnected: event => {
         console.log("disconnecteddddd", event);
         Navigation.pop(this.props.componentId);
       },
-      userConnected: (event) => {
-        console.log("userJoined", event);
+      recordStarted: event => {
+        console.log("recordStartedddddd", event.msg);
+        // Navigation.mergeOptions(this.props.componentId, {
+        //   topBar: {
+        //     rightButtons: [
+        //       {
+        //         id: "sendLogs",
+        //         icon: require("./image_asset/raise_hand.png"),
+        //         enabled: true,
+        //         text: "Send Logs",
+        //         color: "white",
+        //         showAsAction: "never",
+        //         systemItem: "done"
+        //       },
+        //       {
+        //         id: "startRecord",
+        //         icon: require("./image_asset/raise_hand.png"),
+        //         enabled: true,
+        //         text: "Stop Recording",
+        //         color: "white",
+        //         showAsAction: "never",
+        //         systemItem: "done"
+        //       },
+        //       {
+        //         id: "recording",
+        //         icon: require("./image_asset/recording.png"),
+        //         enabled: false,
+        //         text: "Stop Recording",
+        //         disabledColor: "red",
+        //         showAsAction: "always",
+        //         systemItem: "done"
+        //       }
+        //     ]
+        //   }
+        // });
+
+        this.setState({ recordingCheck: true });
       },
-      userDisconnected: (event) => {
+      recordStopped: event => {
+        console.log("recordStopped", event.msg);
+        // Navigation.mergeOptions(this.props.componentId, {
+        //   topBar: {
+        //     rightButtons: [
+        //       {
+        //         id: "sendLogs",
+        //         icon: require("./image_asset/raise_hand.png"),
+        //         enabled: true,
+        //         text: "Send Logs",
+        //         color: "white",
+        //         showAsAction: "never",
+        //         systemItem: "done"
+        //       },
+        //       {
+        //         id: "startRecord",
+        //         icon: require("./image_asset/raise_hand.png"),
+        //         enabled: true,
+        //         text: "Start Recording",
+        //         color: "white",
+        //         showAsAction: "never",
+        //         systemItem: "done"
+        //       }
+        //     ]
+        //   }
+        // });
+        this.setState({ recordingCheck: false });
+      },
+      startRecordingEvent: event => {
+        console.log("startRecordingEvent", event);
+        if (event.result == "0") {
+          this.setState({ recordingCheck: true });
+          this.refs.toast.show(event.msg);
+        }
+      },
+      stopRecordingEvent: event => {
+        console.log("stopRecordingEvent", event);
+        if (event.result == "0") {
+          this.setState({ recordingCheck: false });
+          this.refs.toast.show(event.msg);
+        }
+      },
+      receivedStats: event => {
+        console.log("receivedStats", event);
+      },
+      acknowledgeStats: event => {
+        console.log("acknowledgeStats", event);
+      },
+      bandWidthUpdated: event => {
+        console.log("bandWidthUpdated", event);
+      },
+      shareStateEvent: event => {
+        console.log("shareStateEvent", event);
+      },
+      canvasStateEvent: event => {
+        console.log("canvasStateEvent", event);
+      },
+      screenShareStarted: event => {
+        console.log("screenShareStarted", event);
+        this.screenShareId = String(event.streamId);
+        console.log("shareScreeId", this.screenShareId);
+        this.setState({ screenShareCheck: true });
+      },
+      sceenShareStopped: event => {
+        console.log("sceenShareStoppedddd", event);
+        this.setState({ screenShareCheck: false });
+      },
+      canvasStarted: event => {
+        this.canvasStreamId = String(event.streamId);
+        console.log("canvasStartedddddd", this.canvasStreamId);
+        this.setState({ canvasCheck: true });
+      },
+
+      canvasStopped: event => {
+        console.log("canvasStoppedddd", event);
+        this.setState({ canvasCheck: false });
+      },
+      floorRequested: event => {
+        console.log("canvasStoppedddd", event);
+        this.refs.toast.show(event.msg, 500, () => {});
+      },
+      mutedAllUser: event => {
+        console.log("mutedAllUser", event);
+      },
+      unmutedAllUser: event => {
+        console.log("unmutedAllUser", event);
+      },
+      hardMutedAll: event => {
+        console.log("hardMutedAll", event);
+      },
+      hardUnmuteAllUser: event => {
+        console.log("hardUnmuteAllUser", event);
+      },
+      userConnected: event => {
+        console.log("userConnected", event);
+      },
+      userDisconnected: event => {
         console.log("userDisconnected", event);
       },
+      logUpload: event => {
+        console.log("logUpload", event);
+        this.refs.toast.show(event.msg, 500, () => {});
+      },
+      setTalkerCountResponse: event => {
+        console.log("setTalkerCountResponse", event);
+      },
+      getMaxTalkersResponse: event => {
+        console.log("getMaxTalkersResponse", event);
+      },
+      getTalkerCountResponse: event => {
+        console.log("getTalkerCountResponse", event);
+      },
+      reconnect: event => {
+        console.log("reconnect", event);
+      },
+      userReconnect: event => {
+        console.log("userReconnect", event);
+      },
+      connectionInterrupted: event => {
+        console.log("connectionInterrupted", event);
+      },
+      connectionLost: event => {
+        console.log("connectionLost", event);
+      },
+      capturedView: event => {
+        console.log("capturedView", event);
+        this.setState({
+          base64Icon: event
+        });
+      },
+      userDataReceived: event => {
+        console.log("userDataReceived", event);
+      },
+      messageReceived: event => {
+        console.log("messageReceived", event);
+      },
+      getAdvancedOptions: event => {
+        console.log("getAdvancedOptions", event);
+      },
+      advancedOptionsUpdate: event => {
+        console.log("advancedOptionsUpdate", event);
+      },
+      receiveChatDataAtRoom: event => {
+        console.log("receiveChatDataAtRoom", event);
+      },
+      acknowledgedSendData: event => {
+        console.log("acknowledgedSendData", event);
+      },
+      fileUploadStarted: event => {
+        console.log("fileUploadStarted", event);
+      },
+      initFileUpload: event => {
+        console.log("initFileUpload", event);
+      },
+      fileAvailable: event => {
+        console.log("fileAvailable", event);
+      },
+      fileUploaded: event => {
+        console.log("fileUploaded", event);
+      },
+      fileUploadFailed: event => {
+        console.log("fileUploadFailed", event);
+      },
+      fileDownloaded: event => {
+        console.log("fileDownloaded", event);
+      },
+      fileDownloadFailed: event => {
+        console.log("fileDownloadFailed", event);
+      },
+      initFileDownload:event=>{
+         console.log("initFileDownload", event);
+      },
+       fileUploadCancelled: event => {
+        console.log("fileUploadCancelled", event);
+      },
+       fileDownloadCancelled: event => {
+        console.log("fileDownloadCancelled", event);
+      },
+      getRoomMetadata: event => {
+        console.log("getRoomMetadataaaaa", event);
+      },
+      whoAmI: event => {
+        console.log("whoAmIIII", event);
+      },
+      getUserList: event => {
+        console.log("getUserListtttt", event);
+      },
+      getReceiveVideoQuality: event => {
+        console.log("getReceiveVideoQualityyyy", event);
+      },
+      getClientName: event =>{
+        console.log("getClientNameeeeeee", event);
+      },
+      isRoomActiveTalker: event =>{
+        console.log("isRoomActiveTalkerrrrrr", event);
+      },
+      getRoomId: event =>{
+        console.log("getRoomIdddddddd", event);
+      },
+      getClientId: event => {
+        console.log("getClientIdddddd", event);
+      },
+      ackLockRoom: event =>{
+        console.log("ackLockRoommmm", event);
+      },
+      lockedRoom: event =>{
+        console.log("lockedRoommmm", event);
+      },
+      ackUnLockRoom: event =>{
+        console.log("ackUnLockRoommmm", event);
+      },
+      unLockedRoom: event =>{
+        console.log("unLockedRoommmm", event);
+      },
+      ackDestroyRoom: event=> {
+        console.log("ackDestroyRoommmmm", event);
+      },
+      ackDropUser: event => {
+        console.log("ackDropUserrrrr", event);
+      },
+      conferencessExtended: event =>{
+        console.log("conferencessExtendeddddd", event);
+      },
+      startAnnotationACK: event =>{
+        console.log("startAnnotationACKkkkkkk", event);
+        // this.annotationStreamId = String(event.streamId);
+        // console.log("annotationStreamId", this.annotationStreamId);
+        // this.setState({ annotationCheck: true });
+      },
+      annotationStarted: event => {
+        console.log("annotationStarteddddddd", event);
+         this.annotationStreamId = String(event.streamId);
+        console.log("annotationStreamId", this.annotationStreamId);
+        this.setState({ annotationCheck: true });
+      }
     };
+
+
     this.streamEventHandlers = {
-      audioEvent: (event) => {
+      audioEvent: event => {
         console.log("audioEvent", event);
         if (event.result == "0") {
+          this.refs.toast.show(event.msg);
           if (this.state.audioMuteUnmuteCheck) {
             this.setState({ audioMuteUnmuteCheck: false });
+            // this.state.audioMuteUnmuteCheck = false;
             this.setState({
-              audioMuteUnmuteImage: require("./image_asset/mute.png"),
+              audioMuteUnmuteImage: require("./image_asset/mute.png")
             });
           } else {
             this.setState({ audioMuteUnmuteCheck: true });
+            // this.state.audioMuteUnmuteCheck = true;
             this.setState({
-              audioMuteUnmuteImage: require("./image_asset/unmute.png"),
+              audioMuteUnmuteImage: require("./image_asset/unmute.png")
             });
           }
           console.log("NoError Audioo");
         } else {
+          this.refs.toast.show(event.msg);
           console.log("Error Audioo");
         }
       },
-
-      videoEvent: (event) => {
+      playerStats: event => {
+        console.log("playerStats", event);
+      },
+      videoEvent: event => {
         console.log("videoEvent", event);
         if (event.result == "0") {
+          this.refs.toast.show(event.msg);
           if (event.msg == "Video Off") {
             this.setState({
-              videoMuteUnmuteCheck: false,
+              videoMuteUnmuteCheck: false
             });
+            // this.state.videoMuteUnmuteCheck = false;
             this.setState({
-              videoMuteUnmuteImage: require("./image_asset/stopvideo.png"),
+              videoMuteUnmuteImage: require("./image_asset/stopvideo.png")
             });
           } else {
             this.setState({
-              videoMuteUnmuteCheck: true,
+              videoMuteUnmuteCheck: true
             });
+            // this.state.videoMuteUnmuteCheck = true;
             this.setState({
-              videoMuteUnmuteImage: require("./image_asset/startvideo.png"),
+              videoMuteUnmuteImage: require("./image_asset/startvideo.png")
             });
           }
         } else {
+          this.refs.toast.show(event.msg);
           console.log("Error Audioo");
         }
       },
+      hardMuteAudio: event => {
+        console.log("hardMuteAudio", event);
+      },
+      hardUnmuteAudio: event => {
+        console.log("hardUnmuteAudio", event);
+      },
+      recievedHardMutedAudio: event => {
+        console.log("recievedHardMutedAudio", event);
+      },
+      recievedHardUnmutedAudio: event => {
+        console.log("recievedHardUnmutedAudio", event);
+      },
+      hardVideoMute: event => {
+        console.log("hardVideoMute", event);
+      },
+      hardVideoUnmute: event => {
+        console.log("hardVideoUnmute", event);
+      },
+      receivehardMuteVideo: event => {
+        console.log("receivehardMuteVideo", event);
+      },
+      recivehardUnmuteVideo: event => {
+        console.log("recivehardUnmuteVideo", event);
+      },
+      receiveData: event => {
+        console.log("receiveData", event);
+      },
+      remoteStreamAudioMute: event => {
+        console.log("remoteStreamAudioMute", event);
+      },
+      remoteStreamAudioUnMute: event => {
+        console.log("remoteStreamAudioUnMute", event);
+      },
+      remoteStreamVideoMute: event => {
+        console.log("remoteStreamVideoMute", event);
+      },
+      remoteStreamVideoUnMute: event => {
+        console.log("remoteStreamVideoUnMute", event);
+      }
+     
     };
-    Navigation.events().registerNavigationButtonPressedListener((event) => {});
-    Navigation.events().bindComponent(this);
+    // Navigation.events().registerNavigationButtonPressedListener(event => {});
+    // Navigation.events().bindComponent(this);
     this._onPressMute = this._onPressMute.bind(this);
-    this.toggleModal = this.toggleModal.bind(this);
     this._onPressSwitchCamera = this._onPressSwitchCamera.bind(this);
     this._onPressVideoMute = this._onPressVideoMute.bind(this);
     this._onPressSpeaker = this._onPressSpeaker.bind(this);
     this._onPressDisconnect = this._onPressDisconnect.bind(this);
   }
 
+  navigationButtonPressed({ buttonId }) {
+    console.log("nav button clicked");
+    if (Platform.OS === "android") {
+      if (buttonId == "sendLogs") {
+        console.log("sendLogs clicked");
+        this.requestPermission();
+      }
+
+      if (buttonId == "startRecord") {
+        console.log("start Recording button clicked");
+        if (this.state.recordingCheck) {
+          Enx.stopRecord();
+        } else {
+          Enx.startRecord();
+        }
+      }
+    } else {
+      // if (buttonId == "sendLogs") {
+      //   this.menuRef.show(this.textRef.current, (stickTo = Position.TOP_RIGHT));
+      // }
+    }
+  }
+
+  async requestPermission() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: "Enablex Storage Permission",
+          message: "Enablex needs access to your storage " + "to write logs.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK"
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        this.setState({ permissionError: true });
+        Enx.postClientLogs();
+      } else {
+        alert("Kindly grant storage permission to send logs.");
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  }
+
   createActiveTalkerPlayers() {
     console.log(
       "this.state.activeTalkerStreams: ",
-      this.state.activeTalkerStreams.length
+      this.state.activeTalkerStreams
     );
     return (
       <View>
         {this.state.activeTalkerStreams.map(function(element, index) {
           if (index == 0) {
+            console.log("adkjahd", element.streamId);
+            this.activeStreamId = String(element.streamId);
+            console.log("adkjqwdqwahd", this.activeStreamId);
+            // setTimeout(function() {
+            //   Enx.changePlayerScaleType(1, String(element.streamId));
+            // }, 10000);
+
             const { height, width } = Dimensions.get("window");
             return (
               <EnxPlayerView
                 key={String(element.streamId)}
                 streamId={String(element.streamId)}
-                style={{ width: width, height: height }}
+                isLocal = "remote"
+                style={{ width: 400, height: 400 }}
+              />
+            );
+          } else {
+            const { height, width } = Dimensions.get("window");
+            return (
+              <EnxPlayerView
+                key={String(element.streamId)}
+                streamId={String(element.streamId)}
+                isLocal = "remote"
+                style={{ width: 100, height: 100 }}
               />
             );
           }
@@ -231,15 +684,94 @@ export default class EnxConferenceScreen extends PureComponent {
     );
   }
 
+  createCanvasPlayerView() {
+    if (this.state.canvasCheck) {
+      const { height, width } = Dimensions.get("window");
+      return (
+        <EnxPlayerView
+          key={this.canvasStreamId}
+          streamId={this.canvasStreamId}
+          isLocal = "remote"
+          style={{ width: width, height: height }}
+        />
+      );
+    }
+  }
+
+  createAnnotationView() {
+    if (this.state.annotationCheck) {
+      const { height, width } = Dimensions.get("window");
+      return (
+        <EnxPlayerView
+          key="21"
+          streamId="21"
+          isLocal = "remote"
+          style={{ width: width, height: height }}
+        />
+      );
+    }
+  }
+
+  createToolBarView(){
+    const { height, width } = Dimensions.get("window");
+    if (this.state.toolBarCheck) {
+      return (
+        <EnxToolBarView
+          style={{ width: width, height: 200 }}
+        />
+      );
+    }
+  }
+
+  createPlayerView() {
+    if (this.state.screenShareCheck) {
+      const { height, width } = Dimensions.get("window");
+      return (
+        <EnxPlayerView
+          key={this.screenShareId}
+          streamId={this.screenShareId}
+          isLocal = "remote"
+          style={{ width: width, height: 200 }}
+        />
+      );
+    }
+  }
+
   render() {
+    // const isLoggedIn = this.state.screenShareCheck;
+    // console.log("isLoggedIn ",isLoggedIn)
     const { height, width } = Dimensions.get("window");
 
+    /* 2. Read the params from the navigation state */
+    const { route } = this.props;
+
+     const token = route.params ? route.params.token : "";
+     const username = route.params ? route.params.username : null;
+    console.log("token1234",route.params.token);
+    // const setMenuRef = ref => (this.menuRef = ref);
+    // console.log("ahsdhjsagd  ",setMenuRef)
+    //this.sharePlayer = <EnxPlayerView  key={'11'} streamId={'11'} style={{ width:100, height:200 }}/>
+
     return (
-      <View style={{ flex: 1, backgroundColor: "#000000" }}>
+      <View style={{ flex: 1 }}>
+        <Text
+          ref={this.textRef}
+          style={{ fontSize: 20, textAlign: "center" }}
+        />
+        {/* <Menu ref={setMenuRef}>
+          <MenuItem onPress={this._onPressSendLogs}>Send Logs</MenuItem>
+          <MenuItem onPress={this._onPressStartRecord}>
+            Start Recordingr
+          </MenuItem>
+          <MenuItem onPress={this._onPressStopRecord}>Stop Recording</MenuItem>
+        </Menu> */}
+
         <EnxRoom
-          token={this.props.token}
+          token={token}
           eventHandlers={this.roomEventHandlers}
           localInfo={this.state.localStreamInfo}
+          roomInfo={this.state.enxRoomInfo}
+          advanceOptionsInfo={this.state.advanceOptions}
         >
           <EnxStream
             style={{
@@ -247,46 +779,27 @@ export default class EnxConferenceScreen extends PureComponent {
               right: 20,
               width: 100,
               height: 100,
-              zIndex: 1000,
+              zIndex: 1000
             }}
             eventHandlers={this.streamEventHandlers}
           />
+
+          {/* <EnxSubscribeStream style={{ width, height }} /> */}
         </EnxRoom>
+        
         <View>{this.createActiveTalkerPlayers()}</View>
-        <View style={styles.centeredView}>
-          <Modal
-            transparent={true}
-            visible={this.state.isDeviceModal}
-            animationType="slide"
-          >
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
-                <Text
-                  style={{
-                    alignSelf: "center",
-                    fontSize: 24,
-                    margin: 8,
-                    color: "#FF0000",
-                  }}
-                >
-                  Device List
-                </Text>
-                <FlatList
-                  extraData={this.state}
-                  data={this.state.deviceList}
-                  renderItem={this.renderModal}
-                  keyExtractor={(item) => item.name}
-                />
-              </View>
-            </View>
-          </Modal>
-        </View>
+        <View style={{ zIndex: -1 }}>{this.createPlayerView()}</View>
+        <View style={{ zIndex: -1 }}>{this.createCanvasPlayerView()}</View>
+        <View style={{ zIndex: -1 }}>{this.createAnnotationView()}</View>
+        <View style={{ zIndex: 1}}>{this.createToolBarView()}</View>
+        
+
         <View
           style={{
             flex: 1,
             alignItems: "center",
             flexDirection: "row",
-            alignSelf: "center",
+            alignSelf: "center"
           }}
         >
           <TouchableHighlight
@@ -313,7 +826,7 @@ export default class EnxConferenceScreen extends PureComponent {
             borderRadius: 25,
             marginBottom: 20,
             alignSelf: "center",
-            backgroundColor: "#eae7e7",
+            backgroundColor: "#eae7e7"
           }}
         >
           <View style={{ flex: 1, alignItems: "center" }}>
@@ -363,79 +876,88 @@ export default class EnxConferenceScreen extends PureComponent {
               />
             </TouchableHighlight>
           </View>
+          <Image
+            style={{ width: 50, height: 50 }}
+            source={{ uri: `data:image/png;base64,${this.state.base64Icon}` }}
+          />
         </View>
+        <Toast ref="toast" />
       </View>
     );
   }
-  renderSeparator = () => {
-    const { height, width } = Dimensions.get("window");
-    return (
-      <View
-        style={{
-          height: 1,
-          width: width - 200,
-          alignSelf: "center",
-          backgroundColor: "#000",
-        }}
-      />
-    );
-  };
-  renderModal = ({ item }) => {
-    console.log("renderModal", item);
-    return (
-      <Text
-        style={{ alignSelf: "center", fontSize: 14, margin: 10 }}
-        onPress={() => this.onClick(item)}
-      >
-        {item}
-      </Text>
-    );
-  };
-
-  onClick = (item) => {
-    console.log("onClick", item);
-    Enx.switchMediaDevice(item);
-    this.toggleModal();
-  };
 
   _onPressMute = () => {
+    console.log("_onPressMute", "clicked");
+    Enx.getClientId(status => {
+          console.log("getClientId",status);
+
+        });
     console.log("_onPressMuteValue", this.state.audioMuteUnmuteCheck);
+    
     Enx.muteSelfAudio(
       this.state.localStreamId,
       this.state.audioMuteUnmuteCheck
     );
   };
 
-  toggleModal = () => {
-    this.setState({ isDeviceModal: !this.state.isDeviceModal });
-  };
-
   _onPressSwitchCamera = () => {
     console.log("_onPressSwitchCamera", "clicked");
-    Enx.switchCamera(this.state.localStreamId);
+    // Enx.switchCamera(this.state.localStreamId);
+    //   var propertyDict = {textColor: -10053376, textSize: 12, textStyle: 1, text_background: 0}
+    //  var dict = {enable: true, properties:propertyDict}
+    //  var overlayDict = {overlay: dict}
+    //  Enx.setConfigureOption(overlayDict, this.state.localStreamId);
+    // Enx.setConfigureOption(overlayDict, "1");
+  //  Enx.sendFiles(true, []);
+   //NSDictionary *simlDict = @{@"streamType" : @"talker",@"videoQuality" : @"HD"};
+  //  this.canvasStreamId = '1';
+  //  this.setState({ canvasCheck: true });
+      Enx.startAnnotation("2");
+  //  Enx.makeOutboundCall('919729052000');
   };
 
   _onPressVideoMute = () => {
     console.log("_onPressVideoMute", "clicked");
-    Enx.muteSelfVideo(
-      this.state.localStreamId,
-      this.state.videoMuteUnmuteCheck
-    );
+    this.setState({ toolBarCheck: true });
+  console.log("hcsaxas", this.activeStreamId);
+  //  Enx.stopAnnotation();
+    // console.log("_onPressMuteValue", this.state.videoMuteUnmuteCheck);
+    // Enx.muteSelfVideo(
+    //   this.state.localStreamId,
+    //   this.state.videoMuteUnmuteCheck
+    // );
   };
 
   _onPressSpeaker = () => {
     console.log("_onPressSpeaker", "clicked");
-    Enx.getDevices((status) => {
-      console.log("getDevices", status);
-      this.setState({
-        deviceList: status,
-      });
-      this.state.deviceList = status;
-      console.log("getDevices", this.state.deviceList);
-    });
-    this.toggleModal();
-  };
+    Enx.getAvailableFiles();
+    // Enx.enableStats(true);
+    // Enx.enablePlayerStats(true, "2");
+    //  var propertyDict = {textColor: "#ff1a1", textSize: 12, textStyle: 1, backgroundColor: "#ffff66"}
+    //  var dict = {enable: true, properties:propertyDict}
+    //  var overlayDict = {overlay: dict}
+    //  Enx.setConfigureOption(overlayDict, this.state.localStreamId);
 
+    // Enx.sendData(this.state.localStreamId, this.state.chat);
+
+    // var client  = this.state.activeTalkerStreams[0];
+    // var clientId = client.clientId;
+    // Enx.switchUserRole(clientId);
+  };
+  _onPressSendLogs() {
+    console.log("_onPressSendLogs");
+    Enx.postClientLogs();
+  }
+
+  _onPressStartRecord() {
+    console.log("_onPressStartRecordsss");
+    Enx.startRecord();
+  }
+
+  _onPressStopRecord() {
+    console.log("_onPressStopRecord");
+    Enx.stopRecord();
+  }
   _onPressDisconnect = () => {
     console.log("_onPressDisconnect", "clicked");
     Enx.disconnect();
@@ -446,7 +968,7 @@ const styles = StyleSheet.create({
   welcome: {
     fontSize: 20,
     textAlign: "center",
-    margin: 10,
+    margin: 10
   },
   local_stream_border: {
     marginTop: 50,
@@ -458,40 +980,18 @@ const styles = StyleSheet.create({
     paddingLeft: 120,
     borderRadius: 4,
     justifyContent: "center",
-    alignSelf: "center",
+    alignSelf: "center"
   },
   inlineImg_: {
     width: 42,
     alignSelf: "center",
     height: 42,
     zIndex: 50,
-    top: 10,
+    top: 10
   },
   disconnectImg: {
     width: 60,
     height: 60,
-    zIndex: 50,
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22,
-  },
-  modalView: {
-    height: 200,
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
+    zIndex: 50
+  }
 });
