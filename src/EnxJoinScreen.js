@@ -225,7 +225,7 @@ export default class App extends PureComponent {
         name: this.state.user_name,
         role: "participant",
         user_ref: "2236",
-        roomId: infos.room.room_id
+        roomId: this.state.room_id
       },options)
       .then(function(response) {
         this.res_token = response.data;
