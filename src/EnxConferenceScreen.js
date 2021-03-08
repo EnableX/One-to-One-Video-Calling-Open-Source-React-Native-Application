@@ -12,16 +12,10 @@ import {
   Image,
   PermissionsAndroid
 } from "react-native";
-// import { registerScreens } from "./screens";
 import PropTypes from "prop-types";
 import { EnxRoom, Enx, EnxStream, EnxPlayerView, EnxToolBarView } from "enx-rtc-react-native";
-// import { Navigation } from "react-native-navigation";
 import axios from "react-native-axios";
-// import Menu, {
-//   MenuItem,
-//   MenuDivider,
-//   Position
-// } from "react-native-enhanced-popup-menu";
+import { BackHandler } from 'react-native';
 import Toast, { DURATION } from "react-native-easy-toast";
 import { Navigation,Route } from '@react-navigation/native';
 
@@ -31,7 +25,6 @@ export default class EnxConferenceScreen extends PureComponent {
   
   static propTypes = {
     text: PropTypes.string,
-    // componentId: PropTypes.string
   };
 
   static options(passProps) {
@@ -79,30 +72,23 @@ export default class EnxConferenceScreen extends PureComponent {
       }
     };
   }
-
+ 
   async UNSAFE_componentWillMount() {
+
     console.log('Providerrrrrr', EnxToolBarView);
     console.log("componentWillMount");
-   // console.log("token23", token);
-  //  console.log("username", this.props.username);
-   // console.log("permissionsError", this.props.permissionsError);
+    BackHandler.addEventListener('hardwareBackPress', function() {return true})
     Enx.initRoom();
   }
 
   constructor(props) {
     
     super(props);
-    // const { token, username } = this.navigation;
-    // console.log("token321",token);
-    // console.log("username12",username);
-   
+    
     this.textRef = React.createRef();
-    // this.menuRef = null;
     this.sharePlayer = null;
     this.canvasPlayer = null;
     this.state = {
-
-   //   token : this.props.route && this.props.route.params && this.props.route.params.token,
       selectedDevice: "",
       deviceList: [],
       base64Icon: "",
@@ -216,72 +202,17 @@ export default class EnxConferenceScreen extends PureComponent {
 
       roomDisconnected: event => {
         console.log("disconnecteddddd", event);
-        Navigation.pop(this.props.componentId);
+        this.props.navigation.goBack();
+
       },
       recordStarted: event => {
         console.log("recordStartedddddd", event.msg);
-        // Navigation.mergeOptions(this.props.componentId, {
-        //   topBar: {
-        //     rightButtons: [
-        //       {
-        //         id: "sendLogs",
-        //         icon: require("./image_asset/raise_hand.png"),
-        //         enabled: true,
-        //         text: "Send Logs",
-        //         color: "white",
-        //         showAsAction: "never",
-        //         systemItem: "done"
-        //       },
-        //       {
-        //         id: "startRecord",
-        //         icon: require("./image_asset/raise_hand.png"),
-        //         enabled: true,
-        //         text: "Stop Recording",
-        //         color: "white",
-        //         showAsAction: "never",
-        //         systemItem: "done"
-        //       },
-        //       {
-        //         id: "recording",
-        //         icon: require("./image_asset/recording.png"),
-        //         enabled: false,
-        //         text: "Stop Recording",
-        //         disabledColor: "red",
-        //         showAsAction: "always",
-        //         systemItem: "done"
-        //       }
-        //     ]
-        //   }
-        // });
-
+        
         this.setState({ recordingCheck: true });
       },
       recordStopped: event => {
         console.log("recordStopped", event.msg);
-        // Navigation.mergeOptions(this.props.componentId, {
-        //   topBar: {
-        //     rightButtons: [
-        //       {
-        //         id: "sendLogs",
-        //         icon: require("./image_asset/raise_hand.png"),
-        //         enabled: true,
-        //         text: "Send Logs",
-        //         color: "white",
-        //         showAsAction: "never",
-        //         systemItem: "done"
-        //       },
-        //       {
-        //         id: "startRecord",
-        //         icon: require("./image_asset/raise_hand.png"),
-        //         enabled: true,
-        //         text: "Start Recording",
-        //         color: "white",
-        //         showAsAction: "never",
-        //         systemItem: "done"
-        //       }
-        //     ]
-        //   }
-        // });
+        
         this.setState({ recordingCheck: false });
       },
       startRecordingEvent: event => {
@@ -481,9 +412,7 @@ export default class EnxConferenceScreen extends PureComponent {
       },
       startAnnotationACK: event =>{
         console.log("startAnnotationACKkkkkkk", event);
-        // this.annotationStreamId = String(event.streamId);
-        // console.log("annotationStreamId", this.annotationStreamId);
-        // this.setState({ annotationCheck: true });
+      
       },
       annotationStarted: event => {
         console.log("annotationStarteddddddd", event);
@@ -501,13 +430,11 @@ export default class EnxConferenceScreen extends PureComponent {
           this.refs.toast.show(event.msg);
           if (this.state.audioMuteUnmuteCheck) {
             this.setState({ audioMuteUnmuteCheck: false });
-            // this.state.audioMuteUnmuteCheck = false;
             this.setState({
               audioMuteUnmuteImage: require("./image_asset/mute.png")
             });
           } else {
             this.setState({ audioMuteUnmuteCheck: true });
-            // this.state.audioMuteUnmuteCheck = true;
             this.setState({
               audioMuteUnmuteImage: require("./image_asset/unmute.png")
             });

@@ -14,8 +14,6 @@ import {
 } from "react-native";
 import PropTypes from "prop-types";
 
-//import { registerScreens } from "./screens";
-// import { Navigation } from "react-native-navigation";
 import axios from "react-native-axios";
 import Logo from "./Logo";
 import { each } from "underscore";
@@ -216,6 +214,7 @@ export default class App extends PureComponent {
   }
 
   async getRoomTokenWebCall() {
+    console.log("vxc",this.state.room_id);
     var header = (kTry) ? { "x-app-id" : kAppId , "x-app-key" : kAppkey} : {};
     const options = {
       headers: header
@@ -248,16 +247,6 @@ export default class App extends PureComponent {
           token: res_token.token
          
          });
-        // Navigation.push(this.props.componentId, {
-        //   component: {
-        //     name: "EnxConferenceScreen",
-        //     passProps: {
-        //       token: res_token.token,
-        //       username: this.state.user_name,
-        //       permissionsError: this.state.permissionsError
-        //     }
-        //   }
-        // });
       } else {
         console.log(res_token.error);
       }
