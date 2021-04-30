@@ -204,12 +204,21 @@ export default class App extends PureComponent {
     await axios
       .post(kBaseURL+"createRoom/", {} , options)
       .then(function(response) {
-        this.infos = response.data;
-        console.log("axiosResponseinfo", this.infos);
+       if(response.data.result!=0){
+       
+       alert(response.data.desc);
+     return;
+        } else{
+          this.infos = response.data;
+          console.log("axiosResponseinfo", this.infos);
+       
+       }
+
       })
       .catch(function(error) {
         console.log("axiosRoomIdCatchError", error);
       });
+  
       this.setState({room_id:infos.room.room_id})
   }
 
@@ -248,6 +257,7 @@ export default class App extends PureComponent {
          
          });
       } else {
+        alert(res_token.error);
         console.log(res_token.error);
       }
     } catch (error) {
@@ -304,6 +314,7 @@ const styles = StyleSheet.create({
   /* To try the app with Enablex hosted service you need to set the kTry = true */
   const kTry = true;
   /*Use enablec portal to create your app and get these following credentials*/
-  const  kAppId = "App_Id";
-  const  kAppkey = "App_Key";
+
+  const  kAppId = "App_ID";
+  const  kAppkey = "App_key";
 
