@@ -13,7 +13,7 @@
     "@react-native-community/masked-view": "^0.1.10",
     "@react-navigation/native": "^5.8.10",
     "@react-navigation/stack": "^5.12.8",
-    "enx-rtc-react-native": "^1.8.3",
+    "enx-rtc-react-native": "^1.9.5",
     "expo": "^40.0.0",
     "npm-install-peers": "^1.2.1",
     "react": "16.13.1",
