@@ -17,7 +17,7 @@
     "expo": "^40.0.0",
     "npm-install-peers": "^1.2.1",
     "react": "16.13.1",
-    "react-native": "0.63.4",
+    "react-native": "0.64.1",
     "react-native-axios": "^0.17.1",
     "react-native-easy-toast": "^2.0.0",
     "react-native-gesture-handler": "^1.9.0",
