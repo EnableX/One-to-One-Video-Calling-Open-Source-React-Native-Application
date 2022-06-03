@@ -19,18 +19,9 @@ function App() {
 
   return (
     <NavigationContainer>
-      
       <Stack.Navigator>
-     
- 
         <Stack.Screen name="EnxJoinScreen" component={EnxJoinScreen} />
-        <Stack.Screen name="EnxConferenceScreen" component={EnxConferenceScreen}
-         options={{
-          
-          headerLeft: () => {
-            return null;
-          },
-        }} />
+        <Stack.Screen name="EnxConferenceScreen" component={EnxConferenceScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

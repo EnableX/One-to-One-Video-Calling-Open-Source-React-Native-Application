@@ -580,12 +580,7 @@ export default class EnxConferenceScreen extends PureComponent {
         {this.state.activeTalkerStreams.map(function(element, index) {
           if (index == 0) {
             console.log("adkjahd", element.streamId);
-            this.activeStreamId = String(element.streamId);
-            console.log("adkjqwdqwahd", this.activeStreamId);
-            // setTimeout(function() {
-            //   Enx.changePlayerScaleType(1, String(element.streamId));
-            // }, 10000);
-
+         
             const { height, width } = Dimensions.get("window");
             return (
               <EnxPlayerView
@@ -685,14 +680,7 @@ export default class EnxConferenceScreen extends PureComponent {
           ref={this.textRef}
           style={{ fontSize: 20, textAlign: "center" }}
         />
-        {/* <Menu ref={setMenuRef}>
-          <MenuItem onPress={this._onPressSendLogs}>Send Logs</MenuItem>
-          <MenuItem onPress={this._onPressStartRecord}>
-            Start Recordingr
-          </MenuItem>
-          <MenuItem onPress={this._onPressStopRecord}>Stop Recording</MenuItem>
-        </Menu> */}
-
+     
         <EnxRoom
           token={token}
           eventHandlers={this.roomEventHandlers}
@@ -829,48 +817,21 @@ export default class EnxConferenceScreen extends PureComponent {
 
   _onPressSwitchCamera = () => {
     console.log("_onPressSwitchCamera", "clicked");
-    // Enx.switchCamera(this.state.localStreamId);
-    //   var propertyDict = {textColor: -10053376, textSize: 12, textStyle: 1, text_background: 0}
-    //  var dict = {enable: true, properties:propertyDict}
-    //  var overlayDict = {overlay: dict}
-    //  Enx.setConfigureOption(overlayDict, this.state.localStreamId);
-    // Enx.setConfigureOption(overlayDict, "1");
-  //  Enx.sendFiles(true, []);
-   //NSDictionary *simlDict = @{@"streamType" : @"talker",@"videoQuality" : @"HD"};
-  //  this.canvasStreamId = '1';
-  //  this.setState({ canvasCheck: true });
-      Enx.startAnnotation("2");
-  //  Enx.makeOutboundCall('919729052000');
+     Enx.switchCamera(this.state.localStreamId);
   };
 
   _onPressVideoMute = () => {
     console.log("_onPressVideoMute", "clicked");
-    this.setState({ toolBarCheck: true });
-  console.log("hcsaxas", this.activeStreamId);
-  //  Enx.stopAnnotation();
-    // console.log("_onPressMuteValue", this.state.videoMuteUnmuteCheck);
-    // Enx.muteSelfVideo(
-    //   this.state.localStreamId,
-    //   this.state.videoMuteUnmuteCheck
-    // );
+     Enx.muteSelfVideo(
+       this.state.localStreamId,
+       this.state.videoMuteUnmuteCheck
+     );
   };
 
   _onPressSpeaker = () => {
     console.log("_onPressSpeaker", "clicked");
     Enx.getAvailableFiles();
-    // Enx.enableStats(true);
-    // Enx.enablePlayerStats(true, "2");
-    //  var propertyDict = {textColor: "#ff1a1", textSize: 12, textStyle: 1, backgroundColor: "#ffff66"}
-    //  var dict = {enable: true, properties:propertyDict}
-    //  var overlayDict = {overlay: dict}
-    //  Enx.setConfigureOption(overlayDict, this.state.localStreamId);
-
-    // Enx.sendData(this.state.localStreamId, this.state.chat);
-
-    // var client  = this.state.activeTalkerStreams[0];
-    // var clientId = client.clientId;
-    // Enx.switchUserRole(clientId);
-  };
+   };
   _onPressSendLogs() {
     console.log("_onPressSendLogs");
     Enx.postClientLogs();
