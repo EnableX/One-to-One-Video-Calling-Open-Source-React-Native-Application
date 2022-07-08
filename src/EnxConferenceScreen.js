@@ -587,7 +587,7 @@ export default class EnxConferenceScreen extends PureComponent {
                 key={String(element.streamId)}
                 streamId={String(element.streamId)}
                 isLocal = "remote"
-                style={{ width: 400, height: 400 }}
+                style={{ width: width, height: 400 }}
               />
             );
           } else {
@@ -681,26 +681,30 @@ export default class EnxConferenceScreen extends PureComponent {
           style={{ fontSize: 20, textAlign: "center" }}
         />
      
-        <EnxRoom
-          token={token}
-          eventHandlers={this.roomEventHandlers}
-          localInfo={this.state.localStreamInfo}
-          roomInfo={this.state.enxRoomInfo}
-          advanceOptionsInfo={this.state.advanceOptions}
-        >
-          <EnxStream
-            style={{
-              position: "absolute",
-              right: 20,
-              width: 100,
+     <EnxRoom 
+     token={token}
+      eventHandlers={this.roomEventHandlers}
+       localInfo={this.state.localStreamInfo} 
+       roomInfo={this.state.enxRoomInfo} 
+       advanceOptionsInfo={this.state.advanceOptions} >
+         <View
+          style={{
+             width: 100,
               height: 100,
-              zIndex: 1000
-            }}
-            eventHandlers={this.streamEventHandlers}
-          />
-
-          {/* <EnxSubscribeStream style={{ width, height }} /> */}
-        </EnxRoom>
+               position: "absolute",
+                zIndex: 1000, 
+                right: 25, 
+                top: 40, 
+                borderColor: "#fff",
+                 borderWidth: 1 }}>
+                   <EnxStream 
+                   style={{
+               width: "100%",
+                 height: "100%",
+                     }} 
+                     eventHandlers={this.streamEventHandlers} /> 
+                     </View>
+                  </EnxRoom>
         
         <View>{this.createActiveTalkerPlayers()}</View>
         <View style={{ zIndex: -1 }}>{this.createPlayerView()}</View>
