@@ -78,7 +78,8 @@ export default class App extends PureComponent {
                 borderWidth: 2,
                 borderRadius: 10,
                 marginBottom: 20,
-                alignSelf: "center"
+                alignSelf: "center",
+                color:"black"
               }}
               placeholder="Enter name"
               ref={"textInput1"}
@@ -105,7 +106,9 @@ export default class App extends PureComponent {
                 borderWidth: 2,
                 borderRadius: 10,
                 marginBottom: 20,
-                alignSelf: "center"
+                alignSelf: "center",
+                color:"black"
+
               }}
               placeholder="Enter roomId"
               autoCapitalize={"none"}
@@ -315,6 +318,6 @@ const styles = StyleSheet.create({
   const kTry = true;
   /*Use enablec portal to create your app and get these following credentials*/
 
-  const  kAppId = "App-Id";
-  const  kAppkey = "App-Key";
+  const  kAppId = "AppId";
+  const  kAppkey = "AppKey";
 

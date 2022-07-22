@@ -10,7 +10,8 @@ import {
   View,
   Dimensions,
   Image,
-  PermissionsAndroid
+  PermissionsAndroid,  FlatList
+
 } from "react-native";
 import PropTypes from "prop-types";
 import { EnxRoom, Enx, EnxStream, EnxPlayerView, EnxToolBarView } from "enx-rtc-react-native";
@@ -20,79 +21,61 @@ import Toast, { DURATION } from "react-native-easy-toast";
 import { Navigation,Route } from '@react-navigation/native';
 
 type props = {};
-export default class EnxConferenceScreen extends PureComponent {
-  token:string;
-  
-  static propTypes = {
-    text: PropTypes.string,
+
+const calculateColoum = (data)=>{
+  if(data.length == 1 || data.length == 2 )
+    return 1;
+    else 
+      return 2
+    }
+
+const calculateRow = (data)=>{
+  if(data.length == 1) 
+    return 1;
+  else if(data.length == 2 || data.length == 3 || data.length == 4) 
+    return 2
+  else if(data.length == 5 || data.length == 6) 
+    return 3
+  else if(data.length == 7 || data.length == 8) 
+    return 4
+  else if(data.length == 9 || data.length == 10 || data.length>10) 
+    return 5
+}
+
+export default class EnxVideoView extends PureComponent {
+
+  renderItem = ({ item, index }) => {
+    return (
+      <EnxPlayerView
+        style={{
+          flex: 1,
+          margin: 1,
+          height: (this.state.screenHeight - 60) / calculateRow(this.state.activeTalkerStreams), 
+          width: this.state.screenWidth / calculateColoum(this.state.activeTalkerStreams),
+        }}
+        key={String(item.streamId)}
+        streamId={String(item.streamId)}
+        isLocal = "remote"
+      />
+    );
   };
 
-  static options(passProps) {
-    return {
-      topBar: {
-        visible: true,
-        animate: true,
-        rightButtonColor: "white",
-        backButton: {
-          visible: false
-        },
-        title: {
-          text: "EnxConferenceScreen",
-          fontSize: 20,
-          color: "white"
-        },
-        background: {
-          color: "#6f5989"
-        },
-        rightButtons: [
-          {
-            id: "sendLogs",
-            icon: require("./image_asset/menuList.png"),
-            enabled: true,
-            text: "Send Logs",
-            color: "white",
-            showAsAction: "never",
-            systemItem: "action"
-          },
-          {
-            id: "startRecord",
-            icon: require("./image_asset/raise_hand.png"),
-            enabled: true,
-            text: "Start Recording",
-            color: "white",
-            showAsAction: "never",
-            systemItem: "done"
-          }
-        ]
-      },
-      statusBar: {
-        backgroundColor: "#534367",
-        visible: true,
-        style: "light"
-      }
-    };
-  }
- 
   async UNSAFE_componentWillMount() {
-
-    console.log('Providerrrrrr', EnxToolBarView);
-    console.log("componentWillMount");
-    BackHandler.addEventListener('hardwareBackPress', function() {return true})
     Enx.initRoom();
   }
 
   constructor(props) {
-    
     super(props);
-    
-    this.textRef = React.createRef();
-    this.sharePlayer = null;
-    this.canvasPlayer = null;
     this.state = {
+      screenHeight:Dimensions.get('window').height,
+      screenWidth:Dimensions.get('window').width,
+      isHorizontal:false,
+      noOfColumn:0,
       selectedDevice: "",
       deviceList: [],
       base64Icon: "",
       activeTalkerStreams: [],
+      isUpdated : false,
       recordingCheck: false,
       screenShareCheck: false,
       toolBarCheck: false,
@@ -100,6 +83,8 @@ export default class EnxConferenceScreen extends PureComponent {
       audioMuteUnmuteImage: require("./image_asset/unmute.png"),
       videoMuteUnmuteCheck: true,
       videoMuteUnmuteImage: require("./image_asset/startvideo.png"),
+      rotateCamera: false,
+      rotateCameraImage: require("./image_asset/switchcamera.png"),
       canvasCheck: false,
       annotationCheck: false,
       localStreamId: "0",
@@ -129,7 +114,19 @@ export default class EnxConferenceScreen extends PureComponent {
       enxRoomInfo: {
         allow_reconnect: true,
         number_of_attempts: "3",
-        timeout_interval: "15"
+        timeout_interval: "15",
+        playerConfiguration: {
+          audiomute: true,
+          videomute: true,
+          bandwidth: true,
+          screenshot: true,
+          avatar: true,
+          iconHeight: 30,
+          iconWidth: 30,
+          avatarHeight: 50,
+          avatarWidth: 50,
+          iconColor : "#0000FF",
+          },
       },
       chat: {
         message: "Test chat",
@@ -138,7 +135,9 @@ export default class EnxConferenceScreen extends PureComponent {
       },
       
     };
+
     this.requestPermission = this.requestPermission.bind(this);
+    
     this.roomEventHandlers = {
       roomConnected: event => {
         console.log("roomConnected", event);
@@ -147,12 +146,15 @@ export default class EnxConferenceScreen extends PureComponent {
             localStreamId: status
           });
           this.state.localStreamId = status;
-          console.log("localStreamId", this.state.localStreamId);
         });
         Enx.publish();
       },
       roomError: event => {
         console.log("roomError", event);
+        if(event.msg=="Network disconnected"){
+          this.props.navigation.goBack();
+
+        }
         // Navigation.pop(this.props.componentId);
       },
       availableFiles:event=>{
@@ -162,7 +164,6 @@ export default class EnxConferenceScreen extends PureComponent {
         console.log("streamPublished", event);
       },
       eventError: event => {
-        this.refs.toast.show(event.msg);
         console.log("eventErrorrr", event);
         if (this.props.permissionsError) {
           alert("Kindly grant camera and microphone permission to continue.");
@@ -178,19 +179,25 @@ export default class EnxConferenceScreen extends PureComponent {
         console.log("NotifyDeviceUpdate", event);
       },
       activeTalkerList: event => {
-        console.log("activeTalkerList: ", event);
-         
-        
         var tempArray = [];
-        // this.state.activeTalkerStreams = []
-        tempArray = event;
-        console.log("activeTalkerListtempArray: ", tempArray);
-        if (tempArray.length == 0) {
-          this.setState({
-            activeTalkerStreams: tempArray
-          });
+        if(event.length == 0){
+          this.state.activeTalkerStreams = []
+          this.forceUpdate()
+          return
         }
-        if (tempArray.length > 0) {
+        if(event.lenght == this.state.activeTalkerStreams.length)
+          return;
+        if(this.state.activeTalkerStreams.length > 0){
+          this.state.activeTalkerStreams = []
+        }
+        for(var i=0;i<event.length;i++){
+          this.setState({
+            activeStreamId : event[0].streamId
+          });
+
+          tempArray.push(event[i])
+        }
+        if(tempArray.length>0){
           this.setState({
             activeTalkerStreams: tempArray
           });
@@ -203,30 +210,25 @@ export default class EnxConferenceScreen extends PureComponent {
       roomDisconnected: event => {
         console.log("disconnecteddddd", event);
         this.props.navigation.goBack();
-
       },
       recordStarted: event => {
         console.log("recordStartedddddd", event.msg);
-        
         this.setState({ recordingCheck: true });
       },
       recordStopped: event => {
         console.log("recordStopped", event.msg);
-        
         this.setState({ recordingCheck: false });
       },
       startRecordingEvent: event => {
         console.log("startRecordingEvent", event);
         if (event.result == "0") {
           this.setState({ recordingCheck: true });
-          this.refs.toast.show(event.msg);
         }
       },
       stopRecordingEvent: event => {
         console.log("stopRecordingEvent", event);
         if (event.result == "0") {
           this.setState({ recordingCheck: false });
-          this.refs.toast.show(event.msg);
         }
       },
       receivedStats: event => {
@@ -244,10 +246,17 @@ export default class EnxConferenceScreen extends PureComponent {
       canvasStateEvent: event => {
         console.log("canvasStateEvent", event);
       },
+
+      startScreenShareACK: event => {
+        console.log("startScreenShareACK", event);
+      },
+      stoppedScreenShareACK: event => { 
+        console.log("stoppedScreenShareACK", event);
+      },
+
       screenShareStarted: event => {
         console.log("screenShareStarted", event);
         this.screenShareId = String(event.streamId);
-        console.log("shareScreeId", this.screenShareId);
         this.setState({ screenShareCheck: true });
       },
       sceenShareStopped: event => {
@@ -256,7 +265,6 @@ export default class EnxConferenceScreen extends PureComponent {
       },
       canvasStarted: event => {
         this.canvasStreamId = String(event.streamId);
-        console.log("canvasStartedddddd", this.canvasStreamId);
         this.setState({ canvasCheck: true });
       },
 
@@ -266,7 +274,7 @@ export default class EnxConferenceScreen extends PureComponent {
       },
       floorRequested: event => {
         console.log("canvasStoppedddd", event);
-        this.refs.toast.show(event.msg, 500, () => {});
+       
       },
       mutedAllUser: event => {
         console.log("mutedAllUser", event);
@@ -288,7 +296,7 @@ export default class EnxConferenceScreen extends PureComponent {
       },
       logUpload: event => {
         console.log("logUpload", event);
-        this.refs.toast.show(event.msg, 500, () => {});
+        //this.refs.toast.show(event.msg, 500, () => {});
       },
       setTalkerCountResponse: event => {
         console.log("setTalkerCountResponse", event);
@@ -304,6 +312,9 @@ export default class EnxConferenceScreen extends PureComponent {
       },
       userReconnect: event => {
         console.log("userReconnect", event);
+        this.state.activeTalkerStreams = []
+        this.forceUpdate()
+
       },
       connectionInterrupted: event => {
         console.log("connectionInterrupted", event);
@@ -410,16 +421,184 @@ export default class EnxConferenceScreen extends PureComponent {
       conferencessExtended: event =>{
         console.log("conferencessExtendeddddd", event);
       },
-      startAnnotationACK: event =>{
-        console.log("startAnnotationACKkkkkkk", event);
+      roomAwaited: event =>{
+        console.log("roomAwaited", event);
+      },
+      ackForApproveAwaitedUser: event =>{
+        console.log("ackForApproveAwaitedUser", event);
+      },
+      ackForDenyAwaitedUser: event =>{
+        console.log("ackForDenyAwaitedUser", event);
+      },
       
+      userAwaited: event =>{
+        console.log("userAwaited", event);
+      },
+      
+      startAnnotationAck: event =>{
+        console.log("startAnnotationACKkkkkkk", event);
       },
       annotationStarted: event => {
         console.log("annotationStarteddddddd", event);
-         this.annotationStreamId = String(event.streamId);
-        console.log("annotationStreamId", this.annotationStreamId);
+         this.setState({annotationStreamId:String(event.streamId)         });
         this.setState({ annotationCheck: true });
-      }
+      },
+      stoppedAnnotationAck: event =>{
+        this.setState({ toolBarCheck: false });
+      },
+
+      // handle events for Talker Notification
+      ackSubscribeTalkerNotification: event => {
+        console.log("============Ack Subscription=============", event);
+      },
+      ackUnsubscribeTalkerNotification: event => {
+        console.log("Ack Unsubscription", event);
+      },
+      talkerNotification: event => {
+        console.log("Receive Talker Noti", event);
+      },
+
+      // hanlde events for Break Out Room
+
+      ackCreateBreakOutRoom: event => {
+        console.log("========================Ack create Breakout Room===========================", event);
+      },
+      ackCreateAndInviteBreakOutRoom: event => {
+        console.log("Ack create Invite Breakout Room", event);
+      },
+      ackInviteBreakOutRoom: event => {
+        console.log("Ack Invite Breakout Room", event);
+      },
+      ackPause: event => {
+        console.log("Ack Pause", event);
+      },
+      ackResume: event => {
+        console.log("Ack Resume", event);
+      },
+      ackMuteRoom: event => {
+        console.log("Ack Mute Room", event);
+      },
+      ackUnmuteRoom: event => {
+        console.log("Ack Unmute Room", event);
+      },
+      failedJoinBreakOutRoom: event => {
+        console.log("Fail To Join Break out Room", event);
+      },
+      connectedBreakoutRoom: event => {
+        console.log("Connected Breakout Room", event);
+      },
+      disconnectedBreakoutRoom: event => {
+        console.log("Disconnected Breakout Room", event);
+      },
+      userJoinedBreakoutRoom: event => {
+        console.log("User joined Breakout Room", event);
+      },
+      invitationForBreakoutRoom: event => {
+        console.log("Invitation Breakout Room", event);
+      },
+      destroyedBreakoutRoom: event => {
+        console.log("Destroy Breakout Room", event);
+      },
+      userDisconnectedFromBreakoutRoom: event => {
+        console.log("User Disconnected Breakout Room", event);
+      },
+      // events for pre call test
+      clientDiagnosisFailed: event => {
+        console.log("Pre call test Fail", event);
+      },
+      clientDiagnosisStopped: event => {
+        console.log("Pre call test stopped", event);
+      },
+      clientDiagnosisFinished: event => {
+        console.log("Pre call test Finished", event);
+      },
+      clientDiagnosisStatus: event => {
+        console.log("Pre call test Fail", event);
+      },
+      ackAddSpotlightUsers: event => {
+        console.log("Add spot light", event);
+      },
+      ackRemoveSpotlightUsers: event => {
+        console.log("remove spotlight", event);
+      },
+      updateSpotlightUsers: event => {
+        console.log("update spotlight", event);
+      },
+      ackSwitchedRoom: event => {
+        console.log("ackSwitchedRoom", event);
+      },
+      roomModeSwitched: event => {
+        console.log("roomModeSwitched", event);
+      },
+
+      // Live Recording
+      aCKStartLiveRecording: event => {
+        console.log("aCKStartLiveRecording", event);
+      },
+      aCKStopLiveRecording: event => {
+        console.log("aCKStopLiveRecording", event);
+      },
+      liveRecordingNotification: event => {
+        console.log("liveRecordingNotification", event);
+      },
+      roomliverecordOn: event => {
+        console.log("roomliverecordOn", event);
+      },
+
+      //  Out Bound Call
+      outBoundCallInitiated: event => {
+        console.log("outBoundCallInitiated", event);
+      },
+      dialStateEvents: event => {
+        console.log("dialStateEvents", event);
+      },
+      dTMFCollected: event => {
+        console.log("dTMFCollected", event);
+      },
+      outBoundCallCancel: event => {
+        console.log("outBoundCallCancel", event);
+      },
+
+      // Single Mute/Unmute Audio
+      ackHardMuteUserAudio: event => {
+        console.log("ackHardMuteUserAudio", event);
+      },
+      ackHardunMuteUserAudio: event => {
+        console.log("ackHardunMuteUserAudio", event);
+      },
+
+      // Single Mute/Unmute Video
+      ackHardMuteUserVideo: event => {
+        console.log("ackHardMuteUserVideo", event);
+      },
+      ackHardUnMuteUserVideo: event => {
+        console.log("ackHardUnMuteUserVideo", event);
+      },
+
+      stopAllSharingACK: event => {
+        console.log("stopAllSharingACK", event);
+      },
+
+      breakoutroomjoining: event => {
+        console.log("breakoutroomjoining", event);
+      },
+
+      userPaused: event => {
+        console.log("userPaused", event);
+      },
+
+      userResumed: event => {
+        console.log("userResumed", event);
+      },
+    // Bandwidth
+      bandWidthUpdated: event => {
+        console.log("bandWidthUpdated", event);
+      },
+
+      roomBandwidthAlert: event => {
+        console.log("roomBandWidthAlert", event);
+      },
+
     };
 
 
@@ -427,36 +606,28 @@ export default class EnxConferenceScreen extends PureComponent {
       audioEvent: event => {
         console.log("audioEvent", event);
         if (event.result == "0") {
-          this.refs.toast.show(event.msg);
-          if (this.state.audioMuteUnmuteCheck) {
+          if(event.msg == "Audio Off"){
             this.setState({ audioMuteUnmuteCheck: false });
             this.setState({
               audioMuteUnmuteImage: require("./image_asset/mute.png")
             });
-          } else {
+          }else{
             this.setState({ audioMuteUnmuteCheck: true });
             this.setState({
               audioMuteUnmuteImage: require("./image_asset/unmute.png")
-            });
+            }); 
           }
-          console.log("NoError Audioo");
-        } else {
-          this.refs.toast.show(event.msg);
-          console.log("Error Audioo");
-        }
+        } 
       },
       playerStats: event => {
         console.log("playerStats", event);
       },
       videoEvent: event => {
-        console.log("videoEvent", event);
         if (event.result == "0") {
-          this.refs.toast.show(event.msg);
           if (event.msg == "Video Off") {
             this.setState({
               videoMuteUnmuteCheck: false
             });
-            // this.state.videoMuteUnmuteCheck = false;
             this.setState({
               videoMuteUnmuteImage: require("./image_asset/stopvideo.png")
             });
@@ -464,15 +635,11 @@ export default class EnxConferenceScreen extends PureComponent {
             this.setState({
               videoMuteUnmuteCheck: true
             });
-            // this.state.videoMuteUnmuteCheck = true;
             this.setState({
               videoMuteUnmuteImage: require("./image_asset/startvideo.png")
             });
           }
-        } else {
-          this.refs.toast.show(event.msg);
-          console.log("Error Audioo");
-        }
+        } 
       },
       hardMuteAudio: event => {
         console.log("hardMuteAudio", event);
@@ -515,36 +682,11 @@ export default class EnxConferenceScreen extends PureComponent {
       }
      
     };
-    // Navigation.events().registerNavigationButtonPressedListener(event => {});
-    // Navigation.events().bindComponent(this);
     this._onPressMute = this._onPressMute.bind(this);
     this._onPressSwitchCamera = this._onPressSwitchCamera.bind(this);
     this._onPressVideoMute = this._onPressVideoMute.bind(this);
     this._onPressSpeaker = this._onPressSpeaker.bind(this);
     this._onPressDisconnect = this._onPressDisconnect.bind(this);
-  }
-
-  navigationButtonPressed({ buttonId }) {
-    console.log("nav button clicked");
-    if (Platform.OS === "android") {
-      if (buttonId == "sendLogs") {
-        console.log("sendLogs clicked");
-        this.requestPermission();
-      }
-
-      if (buttonId == "startRecord") {
-        console.log("start Recording button clicked");
-        if (this.state.recordingCheck) {
-          Enx.stopRecord();
-        } else {
-          Enx.startRecord();
-        }
-      }
-    } else {
-      // if (buttonId == "sendLogs") {
-      //   this.menuRef.show(this.textRef.current, (stickTo = Position.TOP_RIGHT));
-      // }
-    }
   }
 
   async requestPermission() {
@@ -568,126 +710,75 @@ export default class EnxConferenceScreen extends PureComponent {
     } catch (err) {
       console.warn(err);
     }
-  }
-
-  createActiveTalkerPlayers() {
-    console.log(
-      "this.state.activeTalkerStreams: ",
-      this.state.activeTalkerStreams
-    );
-    return (
-      <View>
-        {this.state.activeTalkerStreams.map(function(element, index) {
-          if (index == 0) {
-            console.log("adkjahd", element.streamId);
-         
-            const { height, width } = Dimensions.get("window");
-            return (
-              <EnxPlayerView
-                key={String(element.streamId)}
-                streamId={String(element.streamId)}
-                isLocal = "remote"
-                style={{ width: width, height: 400 }}
-              />
-            );
-          } else {
-            const { height, width } = Dimensions.get("window");
-            return (
-              <EnxPlayerView
-                key={String(element.streamId)}
-                streamId={String(element.streamId)}
-                isLocal = "remote"
-                style={{ width: 100, height: 100 }}
-              />
-            );
-          }
-        })}
-      </View>
-    );
-  }
-
-  createCanvasPlayerView() {
-    if (this.state.canvasCheck) {
-      const { height, width } = Dimensions.get("window");
-      return (
-        <EnxPlayerView
-          key={this.canvasStreamId}
-          streamId={this.canvasStreamId}
-          isLocal = "remote"
-          style={{ width: width, height: height }}
-        />
-      );
-    }
-  }
-
-  createAnnotationView() {
-    if (this.state.annotationCheck) {
-      const { height, width } = Dimensions.get("window");
-      return (
-        <EnxPlayerView
-          key="21"
-          streamId="21"
-          isLocal = "remote"
-          style={{ width: width, height: height }}
-        />
-      );
-    }
-  }
-
-  createToolBarView(){
-    const { height, width } = Dimensions.get("window");
-    if (this.state.toolBarCheck) {
-      return (
-        <EnxToolBarView
-          style={{ width: width, height: 200 }}
-        />
-      );
-    }
-  }
-
-  createPlayerView() {
-    if (this.state.screenShareCheck) {
-      const { height, width } = Dimensions.get("window");
-      return (
-        <EnxPlayerView
-          key={this.screenShareId}
-          streamId={this.screenShareId}
-          isLocal = "remote"
-          style={{ width: width, height: 200 }}
-        />
-      );
-    }
-  }
+  }  
 
   render() {
-    // const isLoggedIn = this.state.screenShareCheck;
-    // console.log("isLoggedIn ",isLoggedIn)
-    const { height, width } = Dimensions.get("window");
-
-    /* 2. Read the params from the navigation state */
     const { route } = this.props;
 
-     const token = route.params ? route.params.token : "";
-     const username = route.params ? route.params.username : null;
-    console.log("token1234",route.params.token);
-    // const setMenuRef = ref => (this.menuRef = ref);
-    // console.log("ahsdhjsagd  ",setMenuRef)
-    //this.sharePlayer = <EnxPlayerView  key={'11'} streamId={'11'} style={{ width:100, height:200 }}/>
-
+    const token = route.params ? route.params.token : "";
+    const username = route.params ? route.params.username : null;
+    //console.log("height: "+this.state.screenHeight)
+    //console.log("width: "+this.state.screenWidth)
+    //this.state.screenHeight>this.state.screenWidth?console.log("In Portrait mode"):console.log("In landscape mode");
+    
+    
+    //this.state.screenHeight>this.state.screenWidth?
+      //this.setState({
+        //isHorizontal: false
+      //})
+      //:this.setState({
+        //isHorizontal: true
+      //});
+      //this.state.activeTalkerStreams.length < 3 ?
+        //this.setState({
+          //numColumns: 1
+        //})
+        //:this.setState({
+          //numColumns: 2
+        //});
     return (
-      <View style={{ flex: 1 }}>
-        <Text
-          ref={this.textRef}
-          style={{ fontSize: 20, textAlign: "center" }}
-        />
-     
-     <EnxRoom 
-     token={token}
-      eventHandlers={this.roomEventHandlers}
-       localInfo={this.state.localStreamInfo} 
-       roomInfo={this.state.enxRoomInfo} 
-       advanceOptionsInfo={this.state.advanceOptions} >
-         <View
+      <View style={styles.container}>
+        <View style={{flex:1}} onLayout={this._onLayout.bind(this)}>
+            
+            {
+                this.state.activeTalkerStreams.length > 0 ?   
+                  this.state.activeTalkerStreams.length < 3 ?                
+                    <FlatList
+                      key={'_'}
+                      data={this.state.activeTalkerStreams}
+                      contentContainerStyle={styles.flexList}
+                      renderItem={this.renderItem}
+                      numColumns={1}
+                    />
+                : <FlatList
+                    key={'#'}
+                    data={this.state.activeTalkerStreams}
+                    contentContainerStyle={styles.flexList}
+                    renderItem={this.renderItem}
+                    numColumns={2}
+                  />
+              : <View 
+                  style={{
+                    position: 'absolute', 
+                    top: 0, left: 0, 
+                    right: 0, bottom: 0, 
+                    justifyContent: 'center', 
+                    alignItems: 'center'}}>
+                    
+                    <Text style={{fontSize: 16, color:"black",
+
+                              fontWeight: "bold"}}> Please wait other's to join </Text>          
+                  </View>
+              }
+                <View >
+                  <EnxRoom
+                    token={token}
+                    eventHandlers={this.roomEventHandlers}
+                    localInfo={this.state.localStreamInfo}
+                    roomInfo={this.state.enxRoomInfo}
+                    advanceOptionsInfo={this.state.advanceOptions}>
+                
+                <View
           style={{
              width: 100,
               height: 100,
@@ -704,159 +795,151 @@ export default class EnxConferenceScreen extends PureComponent {
                      }} 
                      eventHandlers={this.streamEventHandlers} /> 
                      </View>
-                  </EnxRoom>
+
+                  </EnxRoom> 
+                </View>
+
+              
+              <View style={styles.bottomBar}>
+                <View
+                  style={{flex:1,flexDirection:'row',backgroundColor:'#D3D3D3',marginStart:15,marginEnd:15,borderRadius:20}}>
+
+                  <View style ={{flex:5,flexDirection:'row'}}>
+                    <View style ={{flex:1,}}>
+                        <TouchableHighlight
+                            underlayColor="transparent"
+                            onPress={this._onPressMute}>
+                            <Image
+                                source={this.state.audioMuteUnmuteImage}
+                                style={styles.inlineImg}
+                            />
+                        </TouchableHighlight>
+                    </View>
+                    <View style ={{flex:1,}}>
+                        <TouchableHighlight
+                            underlayColor="transparent"
+                            onPress={this._onPressVideoMute}>
+                            <Image
+                                source={this.state.videoMuteUnmuteImage}
+                                style={styles.inlineImg}
+                            />
+                        </TouchableHighlight>
+                    </View>
+
+                    <View style ={{flex:1,}}>
+                        <TouchableHighlight
+                            underlayColor="transparent"
+                            onPress={this._onPressSwitchCamera}>
+                            <Image
+                                source={this.state.rotateCameraImage}
+                                style={styles.inlineImg}
+                            />
+                        </TouchableHighlight>
+                    </View>
+
+                    {/* <View style ={{flex:1,}}>
+                        <TouchableHighlight
+                            underlayColor="transparent"
+                            onPress={this._onPressSpeaker}>
+                            <Image
+                                source={require("./image_asset/speaker.png")}
+                                style={styles.inlineImg}
+                            />
+                        </TouchableHighlight>
+                    </View> */}
+
+                    <View style ={{flex:1,}}>
+                        <TouchableHighlight
+                            underlayColor="transparent"
+                            onPress={this._onPressDisconnect}>
+                            <Image
+                                source={require("./image_asset/disconnect.png")}
+                                style={styles.inlineImg}
+                            />
+                        </TouchableHighlight>
+                    </View>
+
+                </View>
+
+                </View>
+              </View>
+           
+            </View>
         
-        <View>{this.createActiveTalkerPlayers()}</View>
-        <View style={{ zIndex: -1 }}>{this.createPlayerView()}</View>
-        <View style={{ zIndex: -1 }}>{this.createCanvasPlayerView()}</View>
-        <View style={{ zIndex: -1 }}>{this.createAnnotationView()}</View>
-        <View style={{ zIndex: 1}}>{this.createToolBarView()}</View>
-        
-
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            flexDirection: "row",
-            alignSelf: "center"
-          }}
-        >
-          <TouchableHighlight
-            underlayColor="transparent"
-            onPress={this._onPressDisconnect}
-          >
-            <Image
-              source={require("./image_asset/disconnect.png")}
-              style={styles.disconnectImg}
-            />
-          </TouchableHighlight>
-        </View>
-
-        <View
-          style={{
-            flex: 4,
-            flexDirection: "row",
-            height: 50,
-            width: 300,
-            position: "absolute",
-            bottom: 0,
-            alignItems: "center",
-            justifyContent: "space-around",
-            borderRadius: 25,
-            marginBottom: 20,
-            alignSelf: "center",
-            backgroundColor: "#eae7e7"
-          }}
-        >
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <TouchableHighlight
-              underlayColor="transparent"
-              onPress={this._onPressMute}
-            >
-              <Image
-                source={this.state.audioMuteUnmuteImage}
-                style={styles.inlineImg}
-              />
-            </TouchableHighlight>
-          </View>
-
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <TouchableHighlight
-              underlayColor="transparent"
-              onPress={this._onPressSwitchCamera}
-            >
-              <Image
-                source={require("./image_asset/switchcamera.png")}
-                style={styles.inlineImg}
-              />
-            </TouchableHighlight>
-          </View>
-
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <TouchableHighlight
-              underlayColor="transparent"
-              onPress={this._onPressVideoMute}
-            >
-              <Image
-                source={this.state.videoMuteUnmuteImage}
-                style={styles.inlineImg}
-              />
-            </TouchableHighlight>
-          </View>
-
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <TouchableHighlight
-              underlayColor="transparent"
-              onPress={this._onPressSpeaker}
-            >
-              <Image
-                source={require("./image_asset/speaker.png")}
-                style={styles.inlineImg}
-              />
-            </TouchableHighlight>
-          </View>
-          <Image
-            style={{ width: 50, height: 50 }}
-            source={{ uri: `data:image/png;base64,${this.state.base64Icon}` }}
-          />
-        </View>
-        <Toast ref="toast" />
       </View>
     );
   }
 
   _onPressMute = () => {
-    console.log("_onPressMute", "clicked");
-    Enx.getClientId(status => {
-          console.log("getClientId",status);
-
-        });
-    console.log("_onPressMuteValue", this.state.audioMuteUnmuteCheck);
-    
     Enx.muteSelfAudio(
       this.state.localStreamId,
       this.state.audioMuteUnmuteCheck
     );
   };
 
-  _onPressSwitchCamera = () => {
-    console.log("_onPressSwitchCamera", "clicked");
-     Enx.switchCamera(this.state.localStreamId);
-  };
-
   _onPressVideoMute = () => {
-    console.log("_onPressVideoMute", "clicked");
-     Enx.muteSelfVideo(
-       this.state.localStreamId,
-       this.state.videoMuteUnmuteCheck
-     );
+    Enx.muteSelfVideo(
+        this.state.localStreamId,
+        this.state.videoMuteUnmuteCheck
+      );
   };
 
   _onPressSpeaker = () => {
     console.log("_onPressSpeaker", "clicked");
-    Enx.getAvailableFiles();
    };
-  _onPressSendLogs() {
-    console.log("_onPressSendLogs");
-    Enx.postClientLogs();
-  }
 
-  _onPressStartRecord() {
-    console.log("_onPressStartRecordsss");
-    Enx.startRecord();
-  }
 
-  _onPressStopRecord() {
-    console.log("_onPressStopRecord");
-    Enx.stopRecord();
-  }
+  _onPressSwitchCamera = () => {
+    Enx.switchCamera(this.state.localStreamId);
+    if(!this.state.rotateCamera){
+       this.setState({
+         rotateCamera: true
+       });
+       this.setState({
+         rotateCameraImage: require("./image_asset/switchcamera.png")
+       });
+    }else{
+     this.setState({
+       rotateCamera: false
+     });
+     this.setState({
+       rotateCameraImage: require("./image_asset/switchcamera.png")
+     });
+    }
+  };
+  
   _onPressDisconnect = () => {
-    console.log("_onPressDisconnect", "clicked");
     Enx.disconnect();
   };
-}
+  _onLayout(e){
+    this.setState({
+      screenWidth: Dimensions.get('window').width
+    });
+    this.setState({
+      screenHeight: Dimensions.get('window').height
+    });
+    this.state.screenHeight>this.state.screenWidth?
+      this.setState({
+        isHorizontal: false
+      })
+      :this.setState({
+        isHorizontal: true
+      });
+    console.log("orientation Changed - height"+this.state.screenHeight)
+    console.log("orientation Changed - width"+this.state.screenWidth)
+  }
 
+}
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  itemInvisible: {
+    backgroundColor: 'transparent',
+  },
+  itemText: {
+    color: '#fff',
+  },
   welcome: {
     fontSize: 20,
     textAlign: "center",
@@ -885,5 +968,66 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     zIndex: 50
+  },
+  flexList: {
+    justifyContent: "space-between",
+    backgroundColor: 'white',
+    padding: 0,
+    margin: 1,
+  },
+  containerView: {
+    backgroundColor: "black",
+    borderWidth: 1,
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+    padding: 5,
+    margin: 5,
+  },
+  playerView: {
+    backgroundColor:"pink",  
+    padding: 5,
+    marginTop:5,
+    width: 298, 
+    height: 120
+  },
+  middle: {
+    flex: 0.3,
+    backgroundColor: "beige",
+    borderWidth: 5,
+  },
+  bottom: {
+    flex: 0.3,
+    backgroundColor: "pink",
+    borderWidth: 5,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  selfView: {
+    position: 'absolute',  
+    width: 101,
+    height:101,
+    top:10,
+    right:10,
+    backgroundColor:'white',
+    borderRadius:7,
+    justifyContent: 'center', 
+    alignItems: 'center',
+},
+  bottomBar: {
+    position: 'absolute',  
+    width: '100%',
+    height:60,
+    bottom:0,
+    marginBottom:25,
+},
+inlineImg: {
+    width: 40,
+    alignSelf: "center",
+    height: 40,
+    zIndex: 50,
+    top: 10
   }
 });
+
+
+
