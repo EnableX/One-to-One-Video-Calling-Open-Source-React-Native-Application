@@ -770,7 +770,25 @@ export default class EnxVideoView extends PureComponent {
                               fontWeight: "bold"}}> Please wait other's to join </Text>          
                   </View>
               }
-                <View >
+                          <View style={styles.selfView}>
+              <EnxRoom
+                token={token}
+                eventHandlers={this.roomEventHandlers}
+                localInfo={this.state.localStreamInfo}
+                roomInfo={this.state.enxRoomInfo}
+                advanceOptionsInfo={this.state.advanceOptions}>
+            
+                <EnxStream
+                  style={{
+                    right:1,
+                    width: 100,
+                    height: 100,
+                  }}
+                  eventHandlers={this.streamEventHandlers}
+                />
+              </EnxRoom> 
+            </View>
+                {/* <View >
                   <EnxRoom
                     token={token}
                     eventHandlers={this.roomEventHandlers}
@@ -783,7 +801,6 @@ export default class EnxVideoView extends PureComponent {
              width: 100,
               height: 100,
                position: "absolute",
-                zIndex: 1000, 
                 right: 25, 
                 top: 40, 
                 borderColor: "#fff",
@@ -797,7 +814,7 @@ export default class EnxVideoView extends PureComponent {
                      </View>
 
                   </EnxRoom> 
-                </View>
+                </View> */}
 
               
               <View style={styles.bottomBar}>
@@ -1009,7 +1026,6 @@ const styles = StyleSheet.create({
     top:10,
     right:10,
     backgroundColor:'white',
-    borderRadius:7,
     justifyContent: 'center', 
     alignItems: 'center',
 },
