@@ -15,9 +15,9 @@ import {
 } from "react-native";
 import PropTypes from "prop-types";
 import { EnxRoom, Enx, EnxStream, EnxPlayerView, EnxToolBarView } from "enx-rtc-react-native";
-import axios from "react-native-axios";
+import axios from "axios";
 import { BackHandler } from 'react-native';
-import Toast, { DURATION } from "react-native-easy-toast";
+//import Toast, { DURATION } from "react-native-easy-toast";
 import { Navigation,Route } from '@react-navigation/native';
 
 type props = {};

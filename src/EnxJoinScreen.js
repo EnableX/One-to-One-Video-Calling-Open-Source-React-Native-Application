@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import PropTypes from "prop-types";
 
-import axios from "react-native-axios";
+import axios from "axios";
 import Logo from "./Logo";
 import { each } from "underscore";
 
@@ -318,6 +318,6 @@ const styles = StyleSheet.create({
   const kTry = true;
   /*Use enablec portal to create your app and get these following credentials*/
 
-  const  kAppId = "AppId";
-  const  kAppkey = "AppKey";
+  const  kAppId = "5ef5b31690ef80b4300b0bd2";
+  const  kAppkey = "uJehyWaAu4uvyTupeJyJuHu6ygyYaGu2yzuq";
 
