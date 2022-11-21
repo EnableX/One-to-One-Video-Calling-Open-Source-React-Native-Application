@@ -23,6 +23,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+       // classpath 'com.android.tools.build:gradle:3.5.4'
+
         classpath("com.android.tools.build:gradle:7.0.4")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("de.undercouch:gradle-download-task:4.1.2")
