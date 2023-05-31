@@ -87,6 +87,7 @@ export default class EnxVideoView extends PureComponent {
       rotateCameraImage: require("./image_asset/switchcamera.png"),
       canvasCheck: false,
       annotationCheck: false,
+      isConnected:false,
       localStreamId: "0",
       screenShareId: null,
       canvasStreamId: null,
@@ -141,6 +142,10 @@ export default class EnxVideoView extends PureComponent {
     this.roomEventHandlers = {
       roomConnected: event => {
         console.log("roomConnected", event);
+        
+        this.setState({
+          isConnected: true
+        });
         Enx.getLocalStreamId(status => {
           this.setState({
             localStreamId: status
@@ -778,14 +783,14 @@ export default class EnxVideoView extends PureComponent {
                 roomInfo={this.state.enxRoomInfo}
                 advanceOptionsInfo={this.state.advanceOptions}>
             
-                <EnxStream
+           {this.state.isConnected?<EnxStream
                   style={{
                     right:1,
                     width: 100,
                     height: 100,
                   }}
                   eventHandlers={this.streamEventHandlers}
-                />
+                />:<View></View>}
               </EnxRoom> 
             </View>
                 {/* <View >
