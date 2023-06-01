@@ -22,7 +22,9 @@ if linkage != nil
 end
 
 target 'ReactNativeSampleApp' do
+  use_frameworks!
   config = use_native_modules!
+ 
 
   # Flags change depending on the env values.
   flags = get_default_flags()
@@ -58,3 +60,19 @@ target 'ReactNativeSampleApp' do
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
   end
 end
+$static_framework = ['FlipperKit', 'Flipper', 'Flipper-Folly',
+        'CocoaAsyncSocket', 'ComponentKit', 'DoubleConversion',
+        'glog', 'Flipper-PeerTalk', 'Flipper-RSocket', 'Yoga', 'YogaKit',
+        'CocoaLibEvent', 'OpenSSL-Universal', 'boost-for-react-native']
+     
+    pre_install do |installer|
+        Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
+        installer.pod_targets.each do |pod|
+            if $static_framework.include?(pod.name)
+              def pod.build_type;
+                Pod::BuildType.static_library
+              end
+            end
+          end
+    end
+
