@@ -18,7 +18,6 @@ import { EnxRoom, Enx, EnxStream, EnxPlayerView, EnxToolBarView } from "enx-rtc-
 import axios from "axios";
 import { BackHandler } from 'react-native';
 //import Toast, { DURATION } from "react-native-easy-toast";
-import { Navigation,Route } from '@react-navigation/native';
 
 type props = {};
 
@@ -87,11 +86,11 @@ export default class EnxVideoView extends PureComponent {
       rotateCameraImage: require("./image_asset/switchcamera.png"),
       canvasCheck: false,
       annotationCheck: false,
-      isConnected:false,
       localStreamId: "0",
       screenShareId: null,
       canvasStreamId: null,
       activeStreamId: null,
+      isConnected:false,
       annotationStreamId: null,
       localStreamInfo: {
         audio: true,
@@ -126,7 +125,6 @@ export default class EnxVideoView extends PureComponent {
           iconWidth: 30,
           avatarHeight: 50,
           avatarWidth: 50,
-          iconColor : "#0000FF",
           },
       },
       chat: {
@@ -142,9 +140,8 @@ export default class EnxVideoView extends PureComponent {
     this.roomEventHandlers = {
       roomConnected: event => {
         console.log("roomConnected", event);
-        
         this.setState({
-          isConnected: true
+          isConnected:true
         });
         Enx.getLocalStreamId(status => {
           this.setState({
@@ -783,7 +780,7 @@ export default class EnxVideoView extends PureComponent {
                 roomInfo={this.state.enxRoomInfo}
                 advanceOptionsInfo={this.state.advanceOptions}>
             
-           {this.state.isConnected?<EnxStream
+                {this.state.isConnected?<EnxStream
                   style={{
                     right:1,
                     width: 100,
