@@ -318,6 +318,6 @@ const styles = StyleSheet.create({
   const kTry = true;
   /*Use enablec portal to create your app and get these following credentials*/
 
-  const  kAppId = "5f34cb8190ef809a453dcf32";
-  const  kAppkey = "taQyJuPezegu4ajyPaAe4ypaAuMuDubuQuHe";
+  const  kAppId = "App-id";
+  const  kAppkey = "App-key";
 
