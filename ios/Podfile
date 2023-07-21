@@ -1,28 +1,19 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-platform :ios, min_ios_version_supported
+platform :ios, '13.0'
 prepare_react_native_project!
 
-# If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
-# because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
-#
-# To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
-# ```js
-# module.exports = {
-#   dependencies: {
-#     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
-# ```
 flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
+  use_frameworks! :linkage => :dynamic
 end
 
 target 'ReactNativeSampleApp' do
-  use_frameworks!
+  use_frameworks! :linkage => :dynamic
   config = use_native_modules!
  
 
@@ -50,21 +41,27 @@ target 'ReactNativeSampleApp' do
     # Pods for testing
   end
 
-  post_install do |installer|
-    react_native_post_install(
-      installer,
-      # Set `mac_catalyst_enabled` to `true` in order to apply patches
-      # necessary for Mac Catalyst builds
-      :mac_catalyst_enabled => false
-    )
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
+ post_install do |installer|
+      installer.generated_projects.each do |project|
+          project.targets.each do |target|
+              target.build_configurations.each do |config|
+                  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+                  config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+              end
+ 	case target.name
+  		when 'RCT-Folly'
+    		target.build_configurations.each do |config|
+      		config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '9.0'
+    		end
+  	end
+          end
+      end
   end
 end
 $static_framework = ['FlipperKit', 'Flipper', 'Flipper-Folly',
         'CocoaAsyncSocket', 'ComponentKit', 'DoubleConversion',
         'glog', 'Flipper-PeerTalk', 'Flipper-RSocket', 'Yoga', 'YogaKit',
-        'CocoaLibEvent', 'OpenSSL-Universal', 'boost-for-react-native']
-     
+        'CocoaLibEvent', 'OpenSSL-Universal', 'boost-for-react-native','React-logger','RCT-Folly','React-jsi','React-cxxreact','React-jsiexecutor','React-hermes','React-Core','RCTTypeSafety','RNGestureHandler','React-RCTText','react-native-safe-area-context','ReactCommon','React-RCTAppDelegate','React-Codegen','React-RCTVibration','React-RCTSettings','React-RCTLinking','React-RCTNetwork','React-RCTAnimation','React-RCTBlob','React-RCTImage','React-CoreModules','RNScreens']
     pre_install do |installer|
         Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
         installer.pod_targets.each do |pod|
