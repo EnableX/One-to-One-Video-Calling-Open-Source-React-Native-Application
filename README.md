@@ -1,10 +1,9 @@
-# 1-to-1 RTC: A Sample React Native App with EnableX React Native Toolkit
+# Create a Seamless 1-to-1Video Calling App with Open Source React Native: Step-by-Step Guide
+The sample react-native App demonstrates the use of EnableX platform Server APIs and react-native Toolkit to build 1-to-1 RTC (Real-Time Communication) Application. It allows developers to ramp up on app development by hosting on their own devices.
 
-This is a Sample React Native App demonstrates the use of [EnableX platform Server APIs](https://www.enablex.io/developer/video-api/server-api) and [React Native Toolkit](https://www.enablex.io/developer/video-api/client-api/react-native-toolkit/) to build 1-to-1 RTC (Real-Time Communication) Application. It allows developers to ramp up on app development by hosting on their own devices.
+This App creates a virtual Room on the fly hosted on the Enablex platform using REST calls and uses the Room credentials (i.e. Room Id) to connect to the virtual Room as a Moderator or Participant using a mobile client. The same Room credentials can be shared with others to join the same virtual Room to carry out an RTC (Real-Time Communication) session.
 
-This App creates a virtual Room on the fly hosted on the Enablex platform using REST calls and uses the Room credentials (i.e. Room Id) to connect to the virtual Room as a mobile client. The same Room credentials can be shared with others to join the same virtual Room to carry out an RTC session.
-
-> EnableX Developer Center: https://developer.enablex.io/
+EnableX Developer Center: https://developer.enablex.io/
 
 ## 1. How to get started
 
@@ -12,193 +11,67 @@ This App creates a virtual Room on the fly hosted on the Enablex platform using 
 
 #### 1.1.1 App Id and App Key
 
-- Register with EnableX [https://portal.enablex.io/cpaas/trial-sign-up/]
-- Create your Application
-- Get your App ID and App Key delivered to your email
+* Register with EnableX [https://portal.enablex.io/cpaas/trial-sign-up/] 
+* Create your Application
+* Get your App ID and App Key delivered to your email
 
-#### 1.1.2 Sample React Native Client
+#### 1.1.2 Sample React-Native Client
 
-- Clone or download this Repository [https://github.com/EnableX/One-to-One-Video-Calling-Open-Source-React-Native-Application.git]
+* [Clone or download this Repository](https://github.com/EnableX/One-to-One-Video-Calling-Open-Source-React-Native-Application.git)
 
 #### 1.1.3 Test Application Server
 
-You need to set up an Application Server to provision Web Service API for your React Native Application to enable Video Session.
+You need to setup an Application Server to provision Web Service API for your react-native Application to enable Video Sessions.
 
-To help you to try our React Native Application quickly, without having to set up Applciation Server, this Application is shipped pre-configured to work in a "try" mode with EnableX hosted Application Server i.e. https://demo.enablex.io.
+To help you try our react-native Application quickly, without having to set up an Application Server, this Application is shipped pre-configured to work in a "try" mode with EnableX hosted Application Server i.e. https://demo.enablex.io.
 
-Our Application Server restricts a single Session Duations to 10 minutes, and allows 1 moderator and not more than 3 participants in a Session.
+Our Application Server restricts a single Session Duration to 10 minutes and allows 1 moderator and not more than 1 participant in a Session.
 
-Once you tried EnableX React Native Sample Application, you may need to set up your own Application Server and verify your Application to work with your Application Server. Refer to point 2 for more details on this.
+Once you tried EnableX react-native Sample Application, you may need to set up your own  Application Server and verify your Application to work with your Application Server.  Refer to point 2 for more details on this.
 
-#### 1.1.4 Configure React Native Client
+#### 1.1.4 Configure react-native Client
 
-- Open the App
-- Go to EnxJoinScreen.js and change the following:
 
-```
- /* To try the App with Enablex Hosted Service you need to set the kTry = true When you setup your own Application Service, set kTry = false */
+* Open the App
+* Go to EnxJoinScreen.JS and change the following:
+``` 
+ /* To try the app with Enablex hosted service you need to set the kTry = true 
+  When you setup your own Application Service, set kTry = false */*/
+ /*Your webservice host URL, Keet the defined host when kTry = true */
+  **const kBaseURL = "https://demo.enablex.io/";**
+  /* To try the app with Enablex hosted service you need to set the kTry = true */
+  **const kTry = true;**
+  /*Use enablec portal to create your app and get these following credentials*/
 
-     public  static  final  boolean kTry = true;
-
- /* Your Web Service Host URL. Keet the defined host when kTry = true */
-
-     const kBaseURL = "https://demo.enablex.io/"
-
- /* Your Application Credential required to try with EnableX Hosted Service
-     When you setup your own Application Service, remove these */
-
-     const  kAppId = "App_id"
-     const  kAppkey = "App_key";
-
-```
-
-Note: The distributable comes with demo username and password for the Service.
+  **const  kAppId = "App-id";**
+  **const  kAppkey = "App-key";**
+ ```
+Note: The distributable comes with a demo username and password for the Service. 
 
 ### 1.2 Test
 
 #### 1.2.1 Open the App
 
-- Open the App in your Device. You get a form to enter Credentials i.e. Name & Room Id.
-- You need to create a Room by clicking the "Create Room" button.
-- Once the Room Id is created, you can use it and share with others to connect to the Virtual Room to carry out an RTC Session.
+* Open the App on your Device. You get a form to enter Credentials i.e. Name & Room Id.
+* You need to create a Room by clicking the "Create Room" button.
+* Once the Room ID is created, you can use it and share it with others to connect to the Virtual Room to carry out an RTC Session either as a Moderator or a Participant (Choose applicable Role in the Form).
 
-Note:- In case of emulator/simulator your local stream will not create. It will create only on real device.
+Note: Only one user with a Moderator Role is allowed to connect to a Virtual Room while trying with EnableX Hosted Service. Your Own Application Server can allow up to 5 Moderators.
 
-## 2 Server API
+Note:- In the case of an emulator/simulator your local stream will not be created. It will be created only on a real device.
 
-EnableX Server API is a Rest API service meant to be called from Partners' Application Server to provision video enabled
-meeting rooms. API Access is given to each Application through the assigned App ID and App Key. So, the App ID and App Key
-are to be used as Username and Password respectively to pass as HTTP Basic Authentication header to access Server API.
+## 2. Set up Your Own Application Server
 
-For this application, the following Server API calls are used:
+You may need to set up your own Application Server after you try the Sample Application with EnableX hosted Server. We have different variants of the Application Server Sample Code. Pick the one in your preferred language and follow the instructions given in the respective README.md file.
 
-- https://www.enablex.io/developer/video-api/server-api/rooms-route/#get-rooms - To get list of Rooms
-- https://www.enablex.io/developer/video-api/server-api/rooms-route/#get-room-info - To get information of the given Room
-- https://www.enablex.io/developer/video-api/server-api/rooms-route/#create-token - To create Token for the given Room
+* NodeJS: [https://github.com/EnableX/Video-Conferencing-Open-Source-Web-Application-Sample.git]
+* PHP: [https://github.com/EnableX/Group-Video-Call-Conferencing-Sample-Application-in-PHP]
+
+Note the following:
+
+* You need to use App ID and App Key to run this Service.
+* Your React-native Client EndPoint needs to connect to this Service to create a Virtual Room and Create a Token to join the session.
+* Application Server is created using EnableX Server API while Rest API Service helps in provisioning, session access, and post-session reporting.
 
 To know more about Server API, go to:
 https://www.enablex.io/developer/video-api/server-api
-
-## 3 React Native Toolkit
-
-React Native App to use React Native Toolkit to communicate with EnableX Servers to initiate and manage Real Time Communications.
-
-- Documentation: https://www.enablex.io/developer/video-api/client-api/react-native-toolkit/
-
-### 3.1 Platform oriented Dependency Installation
-
-#### 3.1.1 iOS dependency
-
-- Step 1: In your terminal, change into the `ios` directory of your React Native project.
-- Step 2: Now run, `pod install`
-- Step 3: Change root directory of your Project
-- Step 4: Now run, `react-native link enx-rtc-react-native`.
-- Step 5: Run pod install in iOS project folder
-  - Step 5: Disable Bitcode in Build Settings for pod 'EnxRTCiOS' and 'enx-rtc-react-native'
-    NOTE: Make sure you are using EnxRTCiOS version 1.5.6 else pod update.
-
-#### 3.1.2 Android dependency
-
-After installing nodemodules, change the manifest file of react-native-navigation in android Project, because of 3rd party dependency issue as follows:
-
-```
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-          package="com.reactnativenavigation">
-    <uses-sdk tools:overrideLibrary="com.shazam.android.widget.text.reflow"/>
-    <application>
-        <activity
-            android:name="com.facebook.react.devsupport.DevSettingsActivity"
-            android:exported="false"/>
-    </application>
-</manifest>
-
-```
-
-## 4 Application Walk-through
-
-### 4.1 Create Token
-
-We create a Token for a Room Id to get connected to EnableX Platform to connect to the Virtual Room to carry out an RTC Session.
-
-To create Token, we make use of Server API. Refer following documentation:
-https://www.enablex.io/developer/video-api/server-api/rooms-route/#create-token
-
-### 4.2 Connect to a Room, Initiate & Publish Stream
-
-We use the Token to get connected to the Virtual Room. Once connected, we intiate local stream and publish into the room. Refer following documentation for this process:
-https://www.enablex.io/developer/video-api/client-api/react-native-toolkit/room-connection/
-
-### 4.3 Play Stream
-
-We play the Stream into EnxPlayerView Object.
-
-```
- <EnxPlayerView
-key={String(element.streamId)}
-streamId={String(element.streamId)}
-style={{ width: width, height: height }}
-/>
-```
-
-### 4.4 Handle Server Events
-
-EnableX Platform will emit back many events related to the ongoing RTC Session as and when they occur implicitly or explicitly as a result of user interaction. We use Call Back Methods to handle all such events.
-
-```
-/* Example of Call Back Methods */
-
-/* Call Back Method: onRoomConnected
-Handles successful connection to the Virtual Room */
-
- roomConnected: event => {
-    /* You may initiate and publish stream */
-}
-
-
-/* Call Back Method: onRoomError
- Error handler when room connection fails */
-
-roomError: event => {
-/* Room Error */
-}
-
-
-/* Call Back Method: onStreamAdded
- To handle any new stream added to the Virtual Room */
-
- streamAdded: event => {
-    /* Subscribe Remote Stream */
-}
-
-
-/* Call Back Method: onActiveTalkerList
- To handle any time Active Talker list is updated */
-
-activeTalkerList: event => {
-    /* Handle Stream Players */
-}
-```
-
-## 5 Trial
-
-Try a quick Video Call: https://try.enablex.io/ 
-Sign up for a free trial https://portal.enablex.io/cpaas/trial-sign-up/
-
-
-## 6 NOTE
-
-If you are using downgraded version of react-native (0.60.5),Or you find any error like this:
-
-```
- Native Module EnxRoomManager tried to override EnxRoomManager. Check the getPackages() method in MainApplication.java.
-```
-
-then kindly follow the below steps also, so that everything will work perfectly:
-
-After running command npm install,
-
-1. Go to the nodemodules folder in your app
-2. Go to the enx-rtc-reat-native folder
-3. Find nodemodules folder in enx-rtc-react-native folder and delete it
-4. After that sync up your project files.

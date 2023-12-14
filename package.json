@@ -1,13 +1,13 @@
 {
-  "name": "MyReactNative",
-  "version": "1.0.0",
+  "name": "ReactNativeSampleApp",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "start": "expo start --dev-client",
-    "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "start": "react-native start",
+    "test": "jest"
   },
   "dependencies": {
     "@react-navigation/native": "^6.0.13",
