@@ -4,7 +4,8 @@ include ':app'
 includeBuild('../node_modules/react-native-gradle-plugin')
 include(":EnxRtcAndroid")
 project(":EnxRtcAndroid").projectDir = file('../node_modules/enx-rtc-react-native/android/EnxRtcAndroid')
-
+include(":LibWebRtc")
+project(":LibWebRtc").projectDir = file('../node_modules/enx-rtc-react-native/android/LibWebRtc')
 if (settings.hasProperty("newArchEnabled") && settings.newArchEnabled == "true") {
     include(":ReactAndroid")
     project(":ReactAndroid").projectDir = file('../node_modules/react-native/ReactAndroid')
