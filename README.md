@@ -74,4 +74,4 @@ Note the following:
 * Application Server is created using EnableX Server API while Rest API Service helps in provisioning, session access, and post-session reporting.
 
 To know more about Server API, go to:
-https://www.enablex.io/developer/video-api/server-api
+https://developer.enablex.io/docs/references/apis/video-api/index/
