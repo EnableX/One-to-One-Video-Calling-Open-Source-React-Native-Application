@@ -11,7 +11,7 @@ EnableX Developer Center: https://developer.enablex.io/
 
 #### 1.1.1 App Id and App Key
 
-* Register with EnableX [https://portal.enablex.io/cpaas/trial-sign-up/] 
+* Register with EnableX [https://www.enablex.io/free-trial/] 
 * Create your Application
 * Get your App ID and App Key delivered to your email
 
@@ -74,4 +74,4 @@ Note the following:
 * Application Server is created using EnableX Server API while Rest API Service helps in provisioning, session access, and post-session reporting.
 
 To know more about Server API, go to:
-https://developer.enablex.io/docs/references/apis/video-api/index/
+https://developer.enablex.io/docs/guides/video-guide/sample-codes/video-calling-app/#demo-application-server
