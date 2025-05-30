@@ -1,12 +1,9 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true,
-    "jsx": "react",
-    "moduleResolution": "node",
-    "baseUrl": "./src",
-    "typeRoots": ["./node_modules/@types", "./types"],
-    "paths": {
-      "*": ["types/*"]
-    }
-  }
+    "jsx": "react"
+  },
+  "compilerOptions": {
+    "jsx": "react"
+  },
+  "extends": "@react-native/typescript-config/tsconfig.json"
 }
