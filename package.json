@@ -14,7 +14,7 @@
     "@react-navigation/native-stack": "^7.3.2",
     "@react-navigation/stack": "^7.2.2",
     "axios": "^1.8.4",
-    "enx-rtc-react-native": "^2.3.48",
+    "enx-rtc-react-native": "^2.3.50",
     "react": "19.0.0",
     "react-native": "0.78.1",
     "react-native-gesture-handler": "^2.24.0",
