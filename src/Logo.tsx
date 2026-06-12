@@ -1,5 +1,5 @@
 // Import React and other necessary modules
-import React, { Component } from "react";
+import React, { Component, createRef } from "react";
 import { StyleSheet, View, Text, Image } from "react-native";
 
 // Import the logo image
@@ -7,16 +7,16 @@ import logoImg from "./image_asset/logofront.png";
 
 // Define the Logo component
 export default class Logo extends Component {
-  // Method to focus on the component
+  private containerRef = createRef<View>();
+
   focusOnComponent() {
-    // Type assertion to bypass type checking
-    (this.refs.container as any).focus();
+    (this.containerRef.current as any)?.focus();
   }
 
   // Render method
   render() {
     return (
-      <View ref="container" style={styles.container}>
+      <View ref={this.containerRef} style={styles.container}>
         <Image source={logoImg} style={styles.image} />
         <Text style={styles.text}>Welcome!</Text>
       </View>

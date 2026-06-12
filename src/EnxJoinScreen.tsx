@@ -279,5 +279,5 @@ const kBaseURL = "https://demo.enablex.io/";
 /* To try the app with Enablex hosted service you need to set the kTry = true */
 const kTry = true;
 /* Use Enablex portal to create your app and get these following credentials */
-const kAppId = "app-Id";
-const kAppkey = "App-Key";
+const kAppId = "App_Id";
+const kAppkey = "App_key";

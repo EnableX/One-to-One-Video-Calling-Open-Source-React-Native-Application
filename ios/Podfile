@@ -1,3 +1,5 @@
+ENV['NODE_BINARY'] = '/usr/local/bin/node'
+
 # Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
   'require.resolve(
@@ -8,45 +10,96 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
+# Set Swift version on the root target definition so CocoaPods can resolve it
+# for -library aggregate targets (RCTSwiftUI-library, RNScreens-library) during
+# project generation — this must happen before any target block.
+current_target_definition.swift_version = '5.0'
+
+config = use_native_modules!
+
+# Patch pods that use Swift but don't declare swift_version in their podspec.
+# CocoaPods 1.15+ validates swift_version on aggregate -library targets before
+# post_install runs, so this pre_install hook is the only reliable fix.
+pre_install do |installer|
+  # Force dynamic framework for Socket.IO pods (required with use_frameworks! static)
+  installer.pod_targets.each do |pod|
+    if pod.name == 'Socket.IO-Client-Swift' || pod.name == 'Starscream'
+      def pod.build_type
+        Pod::BuildType.dynamic_framework
+      end
+    end
+  end
+
+  # Patch pods that use Swift but omit swift_version in their podspec.
+  # CocoaPods 1.15+ validates this during project generation (before post_install),
+  # so we must patch here via spec_consumers.
+  installer.pod_targets.each do |pod|
+    if ['RCTSwiftUI', 'RCTSwiftUIWrapper', 'RNScreens'].include?(pod.name)
+      pod.spec_consumers.each do |consumer|
+        def consumer.swift_version
+          '5.0'
+        end
+      end
+    end
+  end
 end
 
 target 'OneOneVideoCall' do
-  #use_expo_modules!
-  config = use_native_modules!
-use_frameworks! :linkage => :dynamic
 
   use_react_native!(
     :path => config[:reactNativePath],
-    # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
   target 'OneOneVideoCallTests' do
     inherit! :complete
-    # Pods for testing
-  end
-
-  post_install do |installer|
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
-          
-    react_native_post_install(
-      installer,
-      config[:reactNativePath],
-      :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
-    )
   end
 end
-pre_install do |installer|
- installer.pod_targets.each do |pod|
-   if pod.name.eql?('RNScreens') || pod.name.eql?('RNCMaskedView') || pod.name.eql?('RNReanimated')
-     def pod.build_type
-       Pod::BuildType.static_library
-     end
-   end
- end
+
+post_install do |installer|
+  react_native_post_install(
+    installer,
+    config[:reactNativePath],
+    :mac_catalyst_enabled => false
+  )
+
+  # Fix: fmt 11 enables consteval for Apple Clang >= 14, but Xcode 26
+  # (Apple Clang 21, __apple_build_version__ == 21000101) has a broken
+  # consteval implementation that causes "not a constant expression" errors.
+  fmt_base_h = File.join(installer.sandbox.root, 'fmt/include/fmt/base.h')
+  if File.exist?(fmt_base_h)
+    content = File.read(fmt_base_h)
+    old_guard = '__apple_build_version__ < 14000029L'
+    new_guard = '(__apple_build_version__ < 14000029L || __apple_build_version__ >= 21000000L)'
+    if content.include?(old_guard) && !content.include?(new_guard)
+      File.write(fmt_base_h, content.gsub(old_guard, new_guard))
+      Pod::UI.puts 'Patched fmt/base.h: disabled consteval for Apple Clang >= 21 (Xcode 26+)'
+    end
+  end
+
+  # Patch aggregate xcconfig files so -library targets inherit SWIFT_VERSION.
+  # This must happen AFTER react_native_post_install generates those targets.
+  installer.aggregate_targets.each do |aggregate_target|
+    aggregate_target.xcconfigs.each do |config_name, xcconfig|
+      xcconfig.attributes['SWIFT_VERSION'] = '5.0'
+      xcconfig.save_as(aggregate_target.xcconfig_path(config_name))
+    end
+  end
+
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |build_config|
+      build_config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+      build_config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++20'
+      build_config.build_settings['SWIFT_VERSION'] = '5.0'
+    end
+    if target.name == 'React-Codegen'
+      target.build_configurations.each do |build_config|
+        build_config.build_settings['CODEGEN_DISCOVERY_DONE'] = 'YES'
+      end
+    end
+  end
+
+  installer.pods_project.build_configurations.each do |build_config|
+    build_config.build_settings['SWIFT_VERSION'] = '5.0'
+  end
 end
